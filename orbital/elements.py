@@ -201,7 +201,7 @@ class KeplerianElements():
     @M.setter
     def M(self, value):
         self.t = (value - self.M0) / self.n
-        self._M = mod(value, 2 * pi)
+        self._M = ou.mod(value, 2 * pi)
 
     @property
     def t(self):
@@ -214,7 +214,7 @@ class KeplerianElements():
         other anomalies are calculated).
         """
         self._M = self.M0 + self.n * value
-        self._M = mod(self._M, 2 * pi)
+        self._M = ou.mod(self._M, 2 * pi)
         self._t = value
 
     @property

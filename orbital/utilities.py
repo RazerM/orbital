@@ -11,7 +11,6 @@ __all__ = [
     'eccentric_anomaly_from_true',
     'mean_anomaly_from_eccentric',
     'mean_anomaly_from_true',
-    'mod',
     'orbit_radius',
     'Position',
     'StateVector',
@@ -109,67 +108,85 @@ def mod(x, y):
 def divmod(x, y):
     return (floor(x / y), mod(x, y))
 
-class Position:
-    def __init__(self, x, y, z):
-        self.array = np.array([x, y, z])
+class XyzVector(np.ndarray):
+    """Subclass of numpy's ndarray with x/y/z initialiser and property syntax"""
+    def __new__(cls, x, y, z):
+        # Create ndarray and cast to our class type
+        obj = np.asarray([x, y, z]).view(cls)
+
+        # Finally, we must return the newly created object:
+        return obj
 
     @property
     def x(self):
-        return self.array[0]
+        if len(self.shape) == 1:
+            return self[0]
+        else:
+            return self[:,0]
 
     @x.setter
     def x(self, value):
-        self.array[0] = value
+        if len(self.shape) == 1:
+            self[0] = value
+        else:
+            self[:,0] = value
 
     @property
     def y(self):
-        return self.array[1]
+        if len(self.shape) == 1:
+            return self[1]
+        else:
+            return self[:,1]
 
     @y.setter
     def y(self, value):
-        self.array[1] = value
+        if len(self.shape) == 1:
+            self[1] = value
+        else:
+            self[:,1] = value
 
     @property
     def z(self):
-        return self.array[2]
+        if len(self.shape) == 1:
+            return self[2]
+        else:
+            return self[:,2]
 
     @z.setter
     def z(self, value):
-        self.array[2] = value
+        if len(self.shape) == 1:
+            self[2] = value
+        else:
+            self[:,2] = value
+
+    def __str__(self):
+        """Override superclass __str__"""
+        return self.__repr__()
 
     def __repr__(self):
         return '{name}(x={x!r}, y={y!r}, z={z!r})'.format(name=self.__class__.__name__, x=self.x, y=self.y, z=self.z)
 
-    def __add__(self, other):
-        if isinstance(other, numbers.Number):
-            return Position(self.x + other, self.y + other, self.z + other)
-        elif hasattr(other, 'x') and hasattr(other, 'y') and hasattr(other, 'z'):
-            return Position(self.x + other.x, self.y + other.y, self.z + other.z)
-        elif len(other) == 3:
-            return Position(self.x + other[0], self.y + other[1], self.z + other[2])
 
-    def __truediv__(self, other):
-        return Position(self.x / other, self.y / other, self.z / other)
+class Position(XyzVector):
+    pass
 
-    def __mul__(self, other):
-        return Position(self.x * other, self.y * other, self.z * other)
 
-    def __rtruediv__(self, other):
-        return Position(other / self.x, other / self.y, other / self.z)
+class Velocity(XyzVector):
+    pass
 
-    __rmul__ = __mul__
-    __radd__ = __add__
-
-Velocity = namedtuple('Velocity', ['x', 'y', 'z'])
 
 StateVector = namedtuple('StateVector', ['position', 'velocity'])
 
 
 class MeanAnomaly:
+    """Convenience class for representing an anomaly unambiguously.
 
-    def __init__(self, M):
+    After initialisation, the f, E, or M property can be accessed
+    for the anomaly value.
+    """
+    def __init__(self, M, e=None):
         self.M = M
-        self.e = None
+        self.e = e
 
     @property
     def f(self):
@@ -189,10 +206,14 @@ class MeanAnomaly:
 
 
 class TrueAnomaly:
+    """Convenience class for representing an anomaly unambiguously.
 
-    def __init__(self, f):
+    After initialisation, the f, E, or M property can be accessed
+    for the anomaly value.
+    """
+    def __init__(self, f, e=None):
         self.f = f
-        self.e = None
+        self.e = e
 
     @property
     def M(self):
@@ -212,10 +233,14 @@ class TrueAnomaly:
 
 
 class EccentricAnomaly:
+    """Convenience class for representing an anomaly unambiguously.
 
-    def __init__(self, E):
+    After initialisation, the f, E, or M property can be accessed
+    for the anomaly value.
+    """
+    def __init__(self, E, e=None):
         self.E = E
-        self.e = None
+        self.e = e
 
     @property
     def M(self):
