@@ -1,11 +1,12 @@
-from math import acos, cos, sin, sqrt
-from scipy.constants import pi
-from scipy import cross, dot, sign
-from numpy.linalg import norm
-import orbital.bodies
-from orbital.utilities import *
-from orbital.utilities import mod
+from math import acos, cos, sin, sqrt, degrees
+
 import numpy as np
+from numpy.linalg import norm
+from scipy import cross, dot, sign
+from scipy.constants import pi
+
+import orbital.utilities as ou
+from orbital.utilities import *
 
 
 class KeplerianElements():
@@ -41,11 +42,87 @@ class KeplerianElements():
         self.arg_of_pe = arg_of_pe
         self.M0 = M0
 
-        self.M = M0
+        self._M = M0
         self.body = body
         self.epoch = epoch
 
         self._t = 0  # This is important because M := M0
+
+    @classmethod
+    def orbit_with_altitude(cls, altitude, body, e=0, i=0, raan=0,
+                            arg_of_pe=0, M0=0, epoch=None):
+        """Initialise with orbit for a given altitude.
+
+        For eccentric orbits, this is the altitude at the
+        reference anomaly, M0
+        """
+        r = body.orbital_radius(altitude=altitude)
+        a = r * (1 + e * cos(true_anomaly_from_mean(e, M0))) / (1 - e ** 2)
+        return cls(a=a, e=e, i=i, raan=raan, arg_of_pe=arg_of_pe, M0=M0, body=body)
+
+    @classmethod
+    def orbit_with_period(cls, period, body, e=0, i=0, raan=0, arg_of_pe=0,
+                          M0=0, epoch=None):
+        """Initialise orbit with a given period."""
+        ke = cls(e=e, i=i, raan=raan, arg_of_pe=arg_of_pe, M0=M0, body=body)
+        ke.T = period
+        return ke
+
+    def propagate_anomaly_to(self, M=None, E=None, f=None):
+        """Propagate to time in future where anomaly is equal to value passed in.
+
+        This will propagate to a maximum of 1 orbit ahead.
+        """
+        anomaly_error = ValueError('Only one anomaly parameter can be propagated.')
+
+        mean_old = self.M
+        time_old = self.t
+
+        if M is not None:
+            if E is not None or f is not None:
+                raise anomaly_error
+
+            self.M = M
+        elif E is not None:
+            if M is not None or f is not None:
+                raise anomaly_error
+
+            self.E = E
+        elif f is not None:
+            if M is not None or E is not None:
+                raise anomaly_error
+
+            self.f = f
+
+        # Here, '<=' is used so that for M=0, propagate_anomaly_to(M=0) will
+        # propagate by one full orbit
+        if self.M <= mean_old:
+            mean_new = self.M + 2 * pi
+            time_difference = (mean_new - mean_old) / self.n
+            self.t = time_old + time_difference
+
+    def propagate_anomaly_by(self, M=None, E=None, f=None):
+        anomaly_error = ValueError('Only one anomaly parameter can be propagated.')
+
+        if M is not None:
+            if E is not None or f is not None:
+                raise anomaly_error
+
+            self.t += M / self.n
+        elif E is not None:
+            if M is not None or f is not None:
+                raise anomaly_error
+
+            orbits, E = ou.divmod(E, 2 * pi)
+            self.t += orbits * self.T
+            self.t += mean_anomaly_from_eccentric(self.e, E) / self.n
+        elif f is not None:
+            if M is not None or E is not None:
+                raise anomaly_error
+
+            orbits, f = ou.divmod(f, 2 * pi)
+            self.t += orbits * self.T
+            self.t += mean_anomaly_from_true(self.e, f) / self.n
 
     def __getattr__(self, attr):
         """Dynamically respond to correct apsis names for given body."""
@@ -57,26 +134,11 @@ class KeplerianElements():
                 return self.pericenter_radius
         raise AttributeError("'{name}' object has no attribute '{attr}'".format(name=type(self).__name__, attr=attr))
 
-    @classmethod
-    def orbit_with_altitude(cls, altitude, body, e=0, i=0, raan=0,
-                            arg_of_pe=0, M0=0, epoch=None):
-        """Initialise with circular orbit for a given altitude."""
-        a = body.orbital_radius(altitude=altitude)
-        return cls(a=a, e=0, i=i, raan=raan, arg_of_pe=arg_of_pe, M0=M0, body=body)
-
-    @classmethod
-    def orbit_with_period(cls, period, body, e=0, i=0, raan=0, arg_of_pe=0,
-                          M0=0, epoch=None):
-        """Initialise orbit with a given period."""
-        ke = cls(e=e, i=i, raan=raan, arg_of_pe=arg_of_pe, M0=M0, body=body)
-        ke.T = period
-        return ke
-
     @property
     def r(self):
         """Position vector [x, y, z] [m]."""
         pos = orbit_radius(self.a, self.e, self.f) * self.U
-        return PositionVector(x=pos[0], y=pos[1], z=pos[2])
+        return Position(x=pos[0], y=pos[1], z=pos[2])
 
     @property
     def v(self):
@@ -84,7 +146,7 @@ class KeplerianElements():
         r_dot = sqrt(self.body.mu / self.a) * (self.e * sin(self.f)) / sqrt(1 - self.e ** 2)
         rf_dot = sqrt(self.body.mu / self.a) * (1 + self.e * cos(self.f)) / sqrt(1 - self.e ** 2)
         vel = r_dot * self.U + rf_dot * self.V
-        return VelocityVector(x=vel[0], y=vel[1], z=vel[2])
+        return Velocity(x=vel[0], y=vel[1], z=vel[2])
 
     @v.setter
     def v(self, value):
@@ -131,6 +193,16 @@ class KeplerianElements():
             if dot(r, v) < 0:
                 self.f = 2 * pi - self.f
 
+
+    @property
+    def M(self):
+        return self._M
+
+    @M.setter
+    def M(self, value):
+        self.t = (value - self.M0) / self.n
+        self._M = mod(value, 2 * pi)
+
     @property
     def t(self):
         """Time since epoch."""
@@ -141,8 +213,8 @@ class KeplerianElements():
         """Set time since epoch, adjusting current mean anomaly (from which
         other anomalies are calculated).
         """
-        self.M = self.M0 + self.n * value
-        self.M = mod(self.M, 2 * pi)
+        self._M = self.M0 + self.n * value
+        self._M = mod(self._M, 2 * pi)
         self._t = value
 
     @property
@@ -176,12 +248,12 @@ class KeplerianElements():
     @property
     def E(self):
         """Eccentric anomaly [rad]."""
-        return eccentric_anomaly_from_mean(self.e, self.M)
+        return eccentric_anomaly_from_mean(self.e, self._M)
 
     @property
     def f(self):
         """True anomaly [rad]."""
-        return true_anomaly_from_mean(self.e, self.M)
+        return true_anomaly_from_mean(self.e, self._M)
 
     @f.setter
     def f(self, value):
@@ -210,7 +282,6 @@ class KeplerianElements():
     @property
     def W(self):
         """Out-of-plane direction unit vector."""
-        u = self.arg_of_pe + self.f
         return np.array(
             [sin(self.raan) * sin(self.i),
              -cos(self.raan) * sin(self.i),
@@ -252,3 +323,38 @@ class KeplerianElements():
         )
 
         return (U, V, W)
+
+    def __repr__(self):
+        return ('{name}(\n'
+                '\ta={a!r},\n'
+                '\te={e!r},\n'
+                '\ti={i!r},\n'
+                '\traan={raan!r},\n'
+                '\targ_of_pe={arg_of_pe!r},\n'
+                '\tM0={M0!r})'
+               ).format(
+                    name=self.__class__.__name__,
+                    a=self.a,
+                    e=self.e,
+                    i=self.i,
+                    raan=self.raan,
+                    arg_of_pe=self.arg_of_pe,
+                    M0=self.M0)
+
+    def __str__(self):
+        return ('{name}:\n'
+                '\tSemimajor axis (a)                           = {a!r},\n'
+                '\tEccentricity (e)                             = {e!r} deg,\n'
+                '\tInclination (i)                              = {i!r} deg,\n'
+                '\tRight ascension of the ascending node (raan) = {raan!r} deg,\n'
+                '\tArgument of perigee (arg_of_pe)              = {arg_of_pe!r} deg,\n'
+                '\tMean anomaly at epoch (M0)                   = {M0!r} deg'
+               ).format(
+                    name=self.__class__.__name__,
+                    a=degrees(self.a),
+                    e=degrees(self.e),
+                    i=degrees(self.i),
+                    raan=degrees(self.raan),
+                    arg_of_pe=degrees(self.arg_of_pe),
+                    M0=degrees(self.M0)
+               )
