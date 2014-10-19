@@ -18,7 +18,7 @@ class KeplerianElements():
     e         -- Eccentricity                          [-]
     i         -- Inclination                           [rad]
     raan      -- Right ascension of the ascending node [rad]
-    arg_of_pe -- Argument of periapsis                 [rad]
+    arg_pe -- Argument of periapsis                 [rad]
     M0        -- Mean anomaly at epoch                 [rad]
 
     Reference frame:
@@ -33,13 +33,13 @@ class KeplerianElements():
 
     """
 
-    def __init__(self, a=None, e=0, i=0, raan=0, arg_of_pe=0, M0=0,
+    def __init__(self, a=None, e=0, i=0, raan=0, arg_pe=0, M0=0,
                  body=None, epoch=None):
         self.a = a
         self.e = e
         self.i = i
         self.raan = raan
-        self.arg_of_pe = arg_of_pe
+        self.arg_pe = arg_pe
         self.M0 = M0
 
         self._M = M0
@@ -50,7 +50,7 @@ class KeplerianElements():
 
     @classmethod
     def orbit_with_altitude(cls, altitude, body, e=0, i=0, raan=0,
-                            arg_of_pe=0, M0=0, epoch=None):
+                            arg_pe=0, M0=0, epoch=None):
         """Initialise with orbit for a given altitude.
 
         For eccentric orbits, this is the altitude at the
@@ -58,13 +58,13 @@ class KeplerianElements():
         """
         r = body.orbital_radius(altitude=altitude)
         a = r * (1 + e * cos(true_anomaly_from_mean(e, M0))) / (1 - e ** 2)
-        return cls(a=a, e=e, i=i, raan=raan, arg_of_pe=arg_of_pe, M0=M0, body=body)
+        return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body)
 
     @classmethod
-    def orbit_with_period(cls, period, body, e=0, i=0, raan=0, arg_of_pe=0,
+    def orbit_with_period(cls, period, body, e=0, i=0, raan=0, arg_pe=0,
                           M0=0, epoch=None):
         """Initialise orbit with a given period."""
-        ke = cls(e=e, i=i, raan=raan, arg_of_pe=arg_of_pe, M0=M0, body=body)
+        ke = cls(e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body)
         ke.T = period
         return ke
 
@@ -167,12 +167,12 @@ class KeplerianElements():
 
         if self.i == 0:
             self.raan = 0
-            self.arg_of_pe = acos(ev[0] / norm(ev))
+            self.arg_pe = acos(ev[0] / norm(ev))
         else:
             self.raan = acos(ev[0] / norm(n))
             if n[1] < 0:
                 self.raan = 2 * pi - self.raan
-            self.arg_of_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
+            self.arg_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
 
         if self.e == 0:
             if self.i == 0:
@@ -185,7 +185,7 @@ class KeplerianElements():
                     self.f = 2 * pi - self.f
         else:
             if ev[2] < 0:
-                self.arg_of_pe = 2 * pi - self.arg_of_pe
+                self.arg_pe = 2 * pi - self.arg_pe
             d = dot(ev, r) / (norm(ev) * norm(r))
             if abs(d) - 1 < 1e-15:
                 d = sign(d)
@@ -262,29 +262,44 @@ class KeplerianElements():
     @property
     def U(self):
         """Radial direction unit vector."""
-        u = self.arg_of_pe + self.f
+        u = self.arg_pe + self.f
+
+        sin_u = sin(u)
+        cos_u = cos(u)
+        sin_raan = sin(self.raan)
+        cos_raan = cos(self.raan)
+        cos_i = cos(self.i)
+
         return np.array(
-            [cos(u) * cos(self.raan) - sin(u) * sin(self.raan) * cos(self.i),
-             cos(u) * sin(self.raan) + sin(u) * cos(self.raan) * cos(self.i),
-             sin(u) * sin(self.i)]
+            [cos_u * cos_raan - sin_u* sin_raan * cos_i,
+             cos_u * sin_raan + sin_u* cos_raan * cos_i,
+             sin_u * sin(self.i)]
         )
 
     @property
     def V(self):
         """Transversal in-flight direction unit vector."""
-        u = self.arg_of_pe + self.f
+        u = self.arg_pe + self.f
+
+        sin_u = sin(u)
+        cos_u = cos(u)
+        sin_raan = sin(self.raan)
+        cos_raan = cos(self.raan)
+        cos_i = cos(self.i)
+
         return np.array(
-            [-sin(u) * cos(self.raan) - cos(u) * sin(self.raan) * cos(self.i),
-             -sin(u) * sin(self.raan) + cos(u) * cos(self.raan) * cos(self.i),
-             cos(u) * sin(self.i)]
+            [-sin_u * cos_raan - cos_u * sin_raan * cos_i,
+             -sin_u * sin_raan + cos_u * cos_raan * cos_i,
+             cos_u * sin(self.i)]
         )
 
     @property
     def W(self):
         """Out-of-plane direction unit vector."""
+        sin_i = sin(self.i)
         return np.array(
-            [sin(self.raan) * sin(self.i),
-             -cos(self.raan) * sin(self.i),
+            [sin(self.raan) * sin_i,
+             -cos(self.raan) * sin_i,
              cos(self.i)]
         )
 
@@ -295,7 +310,7 @@ class KeplerianElements():
         In situations where all are required, this function can be 15 to 20
         percent faster than the individual property calculations.
         """
-        u = self.arg_of_pe + self.f
+        u = self.arg_pe + self.f
 
         sin_u = sin(u)
         cos_u = cos(u)
@@ -330,7 +345,7 @@ class KeplerianElements():
                 '\te={e!r},\n'
                 '\ti={i!r},\n'
                 '\traan={raan!r},\n'
-                '\targ_of_pe={arg_of_pe!r},\n'
+                '\targ_pe={arg_pe!r},\n'
                 '\tM0={M0!r})'
                ).format(
                     name=self.__class__.__name__,
@@ -338,7 +353,7 @@ class KeplerianElements():
                     e=self.e,
                     i=self.i,
                     raan=self.raan,
-                    arg_of_pe=self.arg_of_pe,
+                    arg_pe=self.arg_pe,
                     M0=self.M0)
 
     def __str__(self):
@@ -347,7 +362,7 @@ class KeplerianElements():
                 '\tEccentricity (e)                             = {e!r} deg,\n'
                 '\tInclination (i)                              = {i!r} deg,\n'
                 '\tRight ascension of the ascending node (raan) = {raan!r} deg,\n'
-                '\tArgument of perigee (arg_of_pe)              = {arg_of_pe!r} deg,\n'
+                '\tArgument of perigee (arg_pe)                 = {arg_pe!r} deg,\n'
                 '\tMean anomaly at epoch (M0)                   = {M0!r} deg'
                ).format(
                     name=self.__class__.__name__,
@@ -355,6 +370,6 @@ class KeplerianElements():
                     e=degrees(self.e),
                     i=degrees(self.i),
                     raan=degrees(self.raan),
-                    arg_of_pe=degrees(self.arg_of_pe),
+                    arg_pe=degrees(self.arg_pe),
                     M0=degrees(self.M0)
                )
