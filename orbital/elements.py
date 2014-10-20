@@ -307,8 +307,8 @@ class KeplerianElements():
     def UVW(self):
         """Calculate U, V, and W vectors simultaneously.
 
-        In situations where all are required, this function can be 15 to 20
-        percent faster than the individual property calculations.
+        In situations where all are required, this function may be faster
+        but it exists for convenience.
         """
         u = self.arg_pe + self.f
 

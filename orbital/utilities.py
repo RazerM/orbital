@@ -1,8 +1,10 @@
 from collections import namedtuple
-from math import atan2, cos, floor, fmod, isinf, isnan, sin, sqrt
+from math import atan2, floor, fmod, isinf, isnan
 
 import numpy as np
+from numpy import sin, cos, sqrt
 from scipy.constants import pi
+
 
 MAX_ITERATIONS = 100
 
