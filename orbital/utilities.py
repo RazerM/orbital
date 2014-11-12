@@ -5,7 +5,6 @@ import numpy as np
 from numpy import sin, cos, sqrt
 from scipy.constants import pi
 
-
 MAX_ITERATIONS = 100
 
 __all__ = [
@@ -107,11 +106,13 @@ def mod(x, y):
     n = floor(x / y)
     return x - n * y
 
+
 def divmod(x, y):
     return (floor(x / y), mod(x, y))
 
+
 class XyzVector(np.ndarray):
-    """Subclass of numpy's ndarray with x/y/z initialiser and property syntax"""
+    """Subclass of numpy's ndarray with x/y/z initialiser and property syntax."""
     def __new__(cls, x, y, z):
         # Create ndarray and cast to our class type
         obj = np.asarray([x, y, z]).view(cls)
