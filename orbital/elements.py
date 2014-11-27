@@ -30,11 +30,11 @@ class KeplerianElements():
     ref_epoch -- astropy.time.Time
 
     Time-dependent properties:
-    t -- Time since epoch (s)
-    M -- Mean anomaly at time t
-    f -- True anomaly at time t
-    E -- Eccentric anomaly at time t
-
+    t     -- Time since ref_epoch (s)
+    epoch -- astropy.time.Time of time since ref_epoch
+    M     -- Mean anomaly at time t
+    f     -- True anomaly at time t
+    E     -- Eccentric anomaly at time t
     """
 
     def __init__(self, a=None, e=0, i=0, raan=0, arg_pe=0, M0=0,
@@ -199,15 +199,28 @@ class KeplerianElements():
             if dot(r, v) < 0:
                 self.f = 2 * pi - self.f
 
-
     @property
     def M(self):
         return self._M
 
     @M.setter
     def M(self, value):
-        self.t = (value - self.M0) / self.n
         self._M = ou.mod(value, 2 * pi)
+
+    @property
+    def epoch(self):
+        """Current epoch."""
+        return self.ref_epoch + time.TimeDelta(self.t, format='sec')
+
+    @epoch.setter
+    def epoch(self, value):
+        """Set epoch, adjusting current mean anomaly (from which
+        other anomalies are calculated).
+        """
+        t = (value - self.ref_epoch).sec
+        self._M = self.M0 + self.n * t
+        self._M = ou.mod(self._M, 2 * pi)
+        self._t = t
 
     @property
     def t(self):
@@ -216,7 +229,7 @@ class KeplerianElements():
 
     @t.setter
     def t(self, value):
-        """Set time since epoch, adjusting current mean anomaly (from which
+        """Set time since ref_epoch, adjusting current mean anomaly (from which
         other anomalies are calculated).
         """
         self._M = self.M0 + self.n * value
