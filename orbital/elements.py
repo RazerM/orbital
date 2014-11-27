@@ -345,38 +345,44 @@ class KeplerianElements():
 
     def __repr__(self):
         return ('{name}(\n'
-                '\ta={a!r},\n'
-                '\te={e!r},\n'
-                '\ti={i!r},\n'
-                '\traan={raan!r},\n'
-                '\targ_pe={arg_pe!r},\n'
-                '\tM0={M0!r})'
-               ).format(
+                '\ta={self.a!r},\n'
+                '\te={self.e!r},\n'
+                '\ti={self.i!r},\n'
+                '\traan={self.raan!r},\n'
+                '\targ_pe={self.arg_pe!r},\n'
+                '\tM0={self.M0!r},\n'
+                '\tbody={self.body!r},\n'
+                '\tref_epoch={self.ref_epoch!r})'
+                ).format(
                     name=self.__class__.__name__,
                     a=self.a,
                     e=self.e,
                     i=self.i,
                     raan=self.raan,
                     arg_pe=self.arg_pe,
-                    M0=self.M0)
+                    self=self)
 
     def __str__(self):
         return ('{name}:\n'
-                '\tSemimajor axis (a)                           = {a!r},\n'
+                '\tSemimajor axis (a)                           = {a!r} m,\n'
                 '\tEccentricity (e)                             = {e!r} deg,\n'
                 '\tInclination (i)                              = {i!r} deg,\n'
                 '\tRight ascension of the ascending node (raan) = {raan!r} deg,\n'
                 '\tArgument of perigee (arg_pe)                 = {arg_pe!r} deg,\n'
-                '\tMean anomaly at epoch (M0)                   = {M0!r} deg'
-               ).format(
+                '\tMean anomaly at ref_epoch (M0)                   = {M0!r} deg,\n'
+                '\tState:\n'
+                '\t\tMean anomaly (M)                         = {M!r} deg,\n'
+                '\t\tTime (t)                                 = {t!r} s'
+                ).format(
                     name=self.__class__.__name__,
                     a=degrees(self.a),
                     e=degrees(self.e),
                     i=degrees(self.i),
                     raan=degrees(self.raan),
                     arg_pe=degrees(self.arg_pe),
-                    M0=degrees(self.M0)
-               )
+                    M0=degrees(self.M0),
+                    M=degrees(self.M),
+                    t=self.t)
 
     def __getstate__(self):
         return {'a': self.a,
