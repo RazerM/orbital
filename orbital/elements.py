@@ -74,6 +74,14 @@ class KeplerianElements():
         ke.T = period
         return ke
 
+    @classmethod
+    def orbit_with_apsides(cls, apocenter_radius, pericenter_radius, i=0,
+                           raan=0, arg_pe=0, M0=0, body=None, ref_epoch=J2000):
+        """Initialise orbit with given apsides."""
+        a, e = elements_for_apsides(apocenter_radius, pericenter_radius)
+        return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
+                   ref_epoch=ref_epoch)
+
     def propagate_anomaly_to(self, M=None, E=None, f=None):
         """Propagate to time in future where anomaly is equal to value passed in.
 
