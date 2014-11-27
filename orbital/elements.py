@@ -6,6 +6,7 @@ from numpy.linalg import norm
 from scipy import cross, dot, sign
 from scipy.constants import pi
 
+import orbital.maneuver
 import orbital.utilities as ou
 from orbital.utilities import *
 
@@ -82,61 +83,17 @@ class KeplerianElements():
         return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
                    ref_epoch=ref_epoch)
 
-    def propagate_anomaly_to(self, M=None, E=None, f=None):
+    def propagate_anomaly_to(self, **kwargs):
         """Propagate to time in future where anomaly is equal to value passed in.
 
         This will propagate to a maximum of 1 orbit ahead.
         """
-        anomaly_error = ValueError('Only one anomaly parameter can be propagated.')
+        operation = orbital.maneuver.PropagateAnomalyTo(**kwargs)
+        self.apply_maneuver(operation)
 
-        mean_old = self.M
-        time_old = self.t
-
-        if M is not None:
-            if E is not None or f is not None:
-                raise anomaly_error
-
-            self.M = M
-        elif E is not None:
-            if M is not None or f is not None:
-                raise anomaly_error
-
-            self.E = E
-        elif f is not None:
-            if M is not None or E is not None:
-                raise anomaly_error
-
-            self.f = f
-
-        # Here, '<=' is used so that for M=0, propagate_anomaly_to(M=0) will
-        # propagate by one full orbit
-        if self.M <= mean_old:
-            mean_new = self.M + 2 * pi
-            time_difference = (mean_new - mean_old) / self.n
-            self.t = time_old + time_difference
-
-    def propagate_anomaly_by(self, M=None, E=None, f=None):
-        anomaly_error = ValueError('Only one anomaly parameter can be propagated.')
-
-        if M is not None:
-            if E is not None or f is not None:
-                raise anomaly_error
-
-            self.t += M / self.n
-        elif E is not None:
-            if M is not None or f is not None:
-                raise anomaly_error
-
-            orbits, E = ou.divmod(E, 2 * pi)
-            self.t += orbits * self.T
-            self.t += mean_anomaly_from_eccentric(self.e, E) / self.n
-        elif f is not None:
-            if M is not None or E is not None:
-                raise anomaly_error
-
-            orbits, f = ou.divmod(f, 2 * pi)
-            self.t += orbits * self.T
-            self.t += mean_anomaly_from_true(self.e, f) / self.n
+    def propagate_anomaly_by(self, **kwargs):
+        operation = orbital.maneuver.PropagateAnomalyBy(**kwargs)
+        self.apply_maneuver(operation)
 
     def __getattr__(self, attr):
         """Dynamically respond to correct apsis names for given body."""
@@ -146,7 +103,15 @@ class KeplerianElements():
         for periapsis_name in self.body.periapsis_names:
             if attr == '{}_radius'.format(periapsis_name):
                 return self.pericenter_radius
-        raise AttributeError("'{name}' object has no attribute '{attr}'".format(name=type(self).__name__, attr=attr))
+        raise AttributeError(
+            "'{name}' object has no attribute '{attr}'"
+            .format(name=type(self).__name__, attr=attr))
+
+    def apply_maneuver(self, maneuver):
+        if isinstance(maneuver, orbital.maneuver.Operation):
+            maneuver = orbital.maneuver.Maneuver(maneuver)
+
+        maneuver.__apply__(self)
 
     @property
     def r(self):
@@ -355,11 +320,6 @@ class KeplerianElements():
                 '\tref_epoch={self.ref_epoch!r})'
                 ).format(
                     name=self.__class__.__name__,
-                    a=self.a,
-                    e=self.e,
-                    i=self.i,
-                    raan=self.raan,
-                    arg_pe=self.arg_pe,
                     self=self)
 
     def __str__(self):
