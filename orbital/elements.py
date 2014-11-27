@@ -250,6 +250,10 @@ class KeplerianElements():
         """Eccentric anomaly [rad]."""
         return eccentric_anomaly_from_mean(self.e, self._M)
 
+    @E.setter
+    def E(self, value):
+        self.M = mean_anomaly_from_eccentric(self.e, value)
+
     @property
     def f(self):
         """True anomaly [rad]."""
