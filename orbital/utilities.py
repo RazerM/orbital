@@ -1,4 +1,5 @@
 from collections import namedtuple
+from contextlib import contextmanager
 from math import atan2, floor, fmod, isinf, isnan
 
 import numpy as np
@@ -10,6 +11,7 @@ MAX_ITERATIONS = 100
 __all__ = [
     'eccentric_anomaly_from_mean',
     'eccentric_anomaly_from_true',
+    'elements_for_apsides',
     'mean_anomaly_from_eccentric',
     'mean_anomaly_from_true',
     'orbit_radius',
@@ -17,8 +19,48 @@ __all__ = [
     'StateVector',
     'true_anomaly_from_eccentric',
     'true_anomaly_from_mean',
+    'uvw_from_elements',
     'Velocity'
 ]
+
+
+def uvw_from_elements(i, raan, arg_pe, f):
+    u = arg_pe + f
+
+    sin_u = sin(u)
+    cos_u = cos(u)
+    sin_raan = sin(raan)
+    cos_raan = cos(raan)
+    sin_i = sin(i)
+    cos_i = cos(i)
+
+    U = np.array(
+        [cos_u * cos_raan - sin_u * sin_raan * cos_i,
+         cos_u * sin_raan + sin_u * cos_raan * cos_i,
+         sin_u * sin_i]
+    )
+
+    V = np.array(
+        [-sin_u * cos_raan - cos_u * sin_raan * cos_i,
+         -sin_u * sin_raan + cos_u * cos_raan * cos_i,
+         cos_u * sin_i]
+    )
+
+    W = np.array(
+        [sin_raan * sin_i,
+         -cos_raan * sin_i,
+         cos_i]
+    )
+
+    return U, V, W
+
+
+@contextmanager
+def saved_state(orbit):
+    """Context manager to restore orbit upon leaving the block."""
+    state = orbit.__getstate__()
+    yield
+    orbit.__setstate__(state)
 
 
 class ConvergenceError(Exception):
@@ -26,8 +68,7 @@ class ConvergenceError(Exception):
 
 
 def eccentric_anomaly_from_mean(e, M, tolerance=1e-14):
-    """
-    Convert mean anomaly to eccentric anomaly
+    """Convert mean anomaly to eccentric anomaly.
 
     Implemented from [A Practical Method for Solving the Kepler Equation][1]
     by Marc A. Murison from the U.S. Naval Observatory
@@ -50,36 +91,52 @@ def eccentric_anomaly_from_mean(e, M, tolerance=1e-14):
         E0 = E
         count += 1
         if count == MAX_ITERATIONS:
-            raise ConvergenceError('Did not converge after {n} iterations. M={M!r}'.format(n=MAX_ITERATIONS, M=M))
+            raise ConvergenceError('Did not converge after {n} iterations. (e={e!r}, M={M!r})'.format(n=MAX_ITERATIONS, e=e, M=M))
     return E
 
 
 def eccentric_anomaly_from_true(e, f):
+    """Convert true anomaly to eccentric anomaly."""
     E = atan2(sqrt(1 - e ** 2) * sin(f), e + cos(f))
     E = mod(E, 2 * pi)
     return E
 
 
 def mean_anomaly_from_eccentric(e, E):
+    """Convert eccentric anomaly to mean anomaly."""
     return E - e * sin(E)
 
 
 def mean_anomaly_from_true(e, f):
+    """Convert true anomaly to mean anomaly."""
     E = eccentric_anomaly_from_true(e, f)
     return E - e * sin(E)
 
 
 def true_anomaly_from_eccentric(e, E):
+    """Convert eccentric anomaly to true anomaly."""
     return 2 * atan2(sqrt(1 + e) * sin(E / 2), sqrt(1 - e) * cos(E / 2))
 
 
 def true_anomaly_from_mean(e, M, tolerance=1e-14):
+    """Convert mean anomaly to true anomaly."""
     E = eccentric_anomaly_from_mean(e, M, tolerance)
     return true_anomaly_from_eccentric(e, E)
 
 
 def orbit_radius(a, e, f):
+    """Calculate scalar orbital radius."""
     return (a * (1 - e ** 2)) / (1 + e * cos(f))
+
+
+def elements_for_apsides(apocenter_radius, pericenter_radius):
+    """Calculate planar orbital elements for given apside radii."""
+    ra = apocenter_radius
+    rp = pericenter_radius
+
+    a = (ra + rp) / 2
+    e = (ra - rp) / (ra + rp)
+    return a, e
 
 
 def mod(x, y):
@@ -108,6 +165,7 @@ def mod(x, y):
 
 
 def divmod(x, y):
+    """Return quotient and remainder from division of x by y."""
     return (floor(x / y), mod(x, y))
 
 
