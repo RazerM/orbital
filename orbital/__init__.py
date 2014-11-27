@@ -1,8 +1,5 @@
 from orbital.elements import KeplerianElements
 
-
-def test():
-    """Run tests from orbital/tests directory."""
-    import os.path
-    import pytest
-    pytest.main(os.path.dirname(os.path.abspath(__file__)))
+__author__ = 'Frazer McLean <frazer@frazermclean.co.uk>'
+__version__ = '0.1.0.dev0'
+__license__ = 'MIT'
