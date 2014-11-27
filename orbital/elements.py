@@ -1,12 +1,16 @@
 from math import acos, cos, sin, sqrt, degrees
 
 import numpy as np
+from astropy import time
 from numpy.linalg import norm
 from scipy import cross, dot, sign
 from scipy.constants import pi
 
 import orbital.utilities as ou
 from orbital.utilities import *
+
+
+J2000 = time.Time('J2000', scale='utc')
 
 
 class KeplerianElements():
@@ -18,12 +22,12 @@ class KeplerianElements():
     e         -- Eccentricity                          [-]
     i         -- Inclination                           [rad]
     raan      -- Right ascension of the ascending node [rad]
-    arg_pe -- Argument of periapsis                 [rad]
-    M0        -- Mean anomaly at epoch                 [rad]
+    arg_pe    -- Argument of periapsis                 [rad]
+    M0        -- Mean anomaly at ref_epoch             [rad]
 
     Reference frame:
-    body  -- Instance of orbital.bodies.Body
-    epoch -- datetime of epoch
+    body      -- Instance of orbital.bodies.Body
+    ref_epoch -- astropy.time.Time
 
     Time-dependent properties:
     t -- Time since epoch (s)
@@ -34,7 +38,7 @@ class KeplerianElements():
     """
 
     def __init__(self, a=None, e=0, i=0, raan=0, arg_pe=0, M0=0,
-                 body=None, epoch=None):
+                 body=None, ref_epoch=J2000):
         self.a = a
         self.e = e
         self.i = i
@@ -44,13 +48,13 @@ class KeplerianElements():
 
         self._M = M0
         self.body = body
-        self.epoch = epoch
+        self.ref_epoch = ref_epoch
 
         self._t = 0  # This is important because M := M0
 
     @classmethod
     def orbit_with_altitude(cls, altitude, body, e=0, i=0, raan=0,
-                            arg_pe=0, M0=0, epoch=None):
+                            arg_pe=0, M0=0, ref_epoch=J2000):
         """Initialise with orbit for a given altitude.
 
         For eccentric orbits, this is the altitude at the
@@ -58,13 +62,15 @@ class KeplerianElements():
         """
         r = body.orbital_radius(altitude=altitude)
         a = r * (1 + e * cos(true_anomaly_from_mean(e, M0))) / (1 - e ** 2)
-        return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body)
+        return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
+                   ref_epoch=ref_epoch)
 
     @classmethod
     def orbit_with_period(cls, period, body, e=0, i=0, raan=0, arg_pe=0,
-                          M0=0, epoch=None):
+                          M0=0, ref_epoch=J2000):
         """Initialise orbit with a given period."""
-        ke = cls(e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body)
+        ke = cls(e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
+                 ref_epoch=ref_epoch)
         ke.T = period
         return ke
 
@@ -205,7 +211,7 @@ class KeplerianElements():
 
     @property
     def t(self):
-        """Time since epoch."""
+        """Time since ref_epoch."""
         return self._t
 
     @t.setter
