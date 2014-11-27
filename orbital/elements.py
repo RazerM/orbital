@@ -310,34 +310,7 @@ class KeplerianElements():
         In situations where all are required, this function may be faster
         but it exists for convenience.
         """
-        u = self.arg_pe + self.f
-
-        sin_u = sin(u)
-        cos_u = cos(u)
-        sin_raan = sin(self.raan)
-        cos_raan = cos(self.raan)
-        sin_i = sin(self.i)
-        cos_i = cos(self.i)
-
-        U = np.array(
-            [cos_u * cos_raan - sin_u * sin_raan * cos_i,
-             cos_u * sin_raan + sin_u * cos_raan * cos_i,
-             sin_u * sin_i]
-        )
-
-        V = np.array(
-            [-sin_u * cos_raan - cos_u * sin_raan * cos_i,
-             -sin_u * sin_raan + cos_u * cos_raan * cos_i,
-             cos_u * sin_i]
-        )
-
-        W = np.array(
-            [sin_raan * sin_i,
-             -cos_raan * sin_i,
-             cos_i]
-        )
-
-        return (U, V, W)
+        return uvw_from_elements(self.i, self.raan, self.arg_pe, self.f)
 
     def __repr__(self):
         return ('{name}(\n'
