@@ -12,12 +12,6 @@ class Body:
         self.periapsis_names = periapsis_names
         self.plot_color = plot_color
 
-    def altitude(self, radius):
-        return radius - self.mean_radius
-
-    def orbital_radius(self, altitude):
-        return altitude + self.mean_radius
-
     @property
     def apoapsis_names(self):
         return self._apoapsis_names

@@ -11,13 +11,13 @@ from scipy.constants import kilo
 class TestOrbitalElements(unittest.TestCase):
 
     def test_anomaly_at_time(self):
-        orbit = KeplerianElements.orbit_with_period(90 * 60, e=0, body=earth)
+        orbit = KeplerianElements.with_period(90 * 60, e=0, body=earth)
         self.assertAlmostEqual(orbit.M, 0)
         orbit.t += orbit.T
         self.assertAlmostEqual(orbit.M, 0)
 
     def test_apsides(self):
-        orbit = KeplerianElements.orbit_with_period(90 * 60, body=earth)
+        orbit = KeplerianElements.with_period(90 * 60, body=earth)
 
         # Test that only general and specific apside attributes work.
         self.assertRaises(AttributeError, lambda: orbit.apohelion_radius)
@@ -26,7 +26,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertEqual(orbit.pericenter_radius, orbit.perigee_radius)
 
         # Ensure earth apsides haven't been added to class definition dynamically.
-        venusian_orbit = KeplerianElements.orbit_with_period(90 * 60, body=venus)
+        venusian_orbit = KeplerianElements.with_period(90 * 60, body=venus)
         self.assertRaises(AttributeError, lambda: venusian_orbit.apogee_radius)
         self.assertRaises(AttributeError, lambda: venusian_orbit.perigee_radius)
 
@@ -36,7 +36,7 @@ class TestOrbitalElements(unittest.TestCase):
 
     def test_mean_motion(self):
         """Test setting the mean motion, and its associated effects on a and M0."""
-        orbit = KeplerianElements.orbit_with_altitude(500 * kilo, M0=radians(35), body=earth)
+        orbit = KeplerianElements.with_altitude(500 * kilo, M0=radians(35), body=earth)
 
         # Propagate to set t nonzero to test M0 fix when a is set.
         orbit.propagate_anomaly_by(M=radians(10))
@@ -52,7 +52,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M, radians(40))
 
     def test_period(self):
-        orbit = KeplerianElements.orbit_with_period(2 * 60 * 60, M0=radians(35), body=earth)
+        orbit = KeplerianElements.with_period(2 * 60 * 60, M0=radians(35), body=earth)
         self.assertAlmostEqual(orbit.T, 2 * 60 * 60)
 
         # Propagate to set t nonzero to test M0 fix when a is set.

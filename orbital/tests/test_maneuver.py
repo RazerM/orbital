@@ -10,7 +10,7 @@ from orbital.maneuver import *
 
 class TestOperation(unittest.TestCase):
     def setUp(self):
-        self.LEO = KeplerianElements.orbit_with_altitude(200 * kilo, body=earth)
+        self.LEO = KeplerianElements.with_altitude(200 * kilo, body=earth)
 
     def test_set_apside_radii(self):
         set_apocenter = SetApocenterRadiusTo(7 * mega)

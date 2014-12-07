@@ -9,6 +9,7 @@ from scipy.constants import pi
 MAX_ITERATIONS = 100
 
 __all__ = [
+    'altitude_from_radius',
     'eccentric_anomaly_from_mean',
     'eccentric_anomaly_from_true',
     'elements_for_apsides',
@@ -16,6 +17,7 @@ __all__ = [
     'mean_anomaly_from_true',
     'orbit_radius',
     'Position',
+    'radius_from_altitude',
     'StateVector',
     'true_anomaly_from_eccentric',
     'true_anomaly_from_mean',
@@ -65,6 +67,10 @@ def saved_state(orbit):
 
 def radius_from_altitude(altitude, body):
     return altitude + body.mean_radius
+
+
+def altitude_from_radius(radius, body):
+    return radius - body.mean_radius
 
 
 class ConvergenceError(Exception):

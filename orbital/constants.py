@@ -58,3 +58,6 @@ uranus_radius_polar  = 24973 * kilo
 
 neptune_radius_mean  = 24622 * kilo
 neptune_radius_polar = 24341 * kilo
+
+# 4.1 s, 56 minutes, 23 hours
+sidereal_day = 4.1 + 60 * (56 + 60 * 23)

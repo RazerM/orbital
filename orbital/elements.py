@@ -54,32 +54,62 @@ class KeplerianElements():
         self._t = 0  # This is important because M := M0
 
     @classmethod
-    def orbit_with_altitude(cls, altitude, body, e=0, i=0, raan=0,
-                            arg_pe=0, M0=0, ref_epoch=J2000):
+    def with_altitude(cls, altitude, body, e=0, i=0, raan=0, arg_pe=0, M0=0,
+                      ref_epoch=J2000):
         """Initialise with orbit for a given altitude.
 
         For eccentric orbits, this is the altitude at the
         reference anomaly, M0
         """
-        r = body.orbital_radius(altitude=altitude)
+        r = radius_from_altitude(altitude, body)
         a = r * (1 + e * cos(true_anomaly_from_mean(e, M0))) / (1 - e ** 2)
+
         return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
                    ref_epoch=ref_epoch)
 
     @classmethod
-    def orbit_with_period(cls, period, body, e=0, i=0, raan=0, arg_pe=0,
-                          M0=0, ref_epoch=J2000):
+    def with_period(cls, period, body, e=0, i=0, raan=0, arg_pe=0, M0=0,
+                    ref_epoch=J2000):
         """Initialise orbit with a given period."""
+
         ke = cls(e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
                  ref_epoch=ref_epoch)
+
         ke.T = period
         return ke
 
     @classmethod
-    def orbit_with_apsides(cls, apocenter_radius, pericenter_radius, i=0,
-                           raan=0, arg_pe=0, M0=0, body=None, ref_epoch=J2000):
-        """Initialise orbit with given apsides."""
+    def with_apside_altitudes(cls, alt1, alt2, i=0, raan=0,  arg_pe=0, M0=0,
+                              body=None, ref_epoch=J2000):
+        """Initialise orbit with given apside altitudes."""
+
+        altitudes = [alt1, alt2]
+        altitudes.sort()
+
+        pericenter_altitude = altitudes[0]
+        apocenter_altitude = altitudes[1]
+
+        apocenter_radius = radius_from_altitude(apocenter_altitude, body)
+        pericenter_radius = radius_from_altitude(pericenter_altitude, body)
+
         a, e = elements_for_apsides(apocenter_radius, pericenter_radius)
+
+        return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
+                   ref_epoch=ref_epoch)
+
+    @classmethod
+    def with_apside_radii(cls, radius1, radius2, i=0, raan=0, arg_pe=0, M0=0,
+                          body=None, ref_epoch=J2000):
+        """Initialise orbit with given apside radii."""
+
+        radii = [radius1, radius2]
+        radii.sort()
+
+        pericenter_radius = radii[0]
+        apocenter_radius = radii[1]
+
+        a, e = elements_for_apsides(apocenter_radius, pericenter_radius)
+
         return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
                    ref_epoch=ref_epoch)
 
