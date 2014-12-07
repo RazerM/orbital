@@ -2,7 +2,7 @@ import orbital.constants as oc
 
 
 class Body:
-    def __init__(self, mass, mu, mean_radius, equatorial_radius, polar_radius, apoapsis_names, periapsis_names):
+    def __init__(self, mass, mu, mean_radius, equatorial_radius, polar_radius, apoapsis_names, periapsis_names, plot_color=None):
         self.mass = mass
         self.mu = mu
         self.mean_radius = mean_radius
@@ -10,6 +10,7 @@ class Body:
         self.polar_radius = polar_radius
         self.apoapsis_names = apoapsis_names
         self.periapsis_names = periapsis_names
+        self.plot_color = plot_color
 
     def altitude(self, radius):
         return radius - self.mean_radius
@@ -40,16 +41,6 @@ class Body:
             self._periapsis_names = value
 
 
-earth = Body(
-    mass=oc.earth_mass,
-    mu=oc.earth_mu,
-    mean_radius=oc.earth_radius_mean,
-    equatorial_radius=oc.earth_radius_equatorial,
-    polar_radius=oc.earth_radius_polar,
-    apoapsis_names='apogee',
-    periapsis_names='perigee'
-)
-
 mercury = Body(
     mass=oc.mercury_mass,
     mu=oc.mercury_mu,
@@ -57,7 +48,8 @@ mercury = Body(
     equatorial_radius=oc.mercury_radius_equatorial,
     polar_radius=oc.mercury_radius_polar,
     apoapsis_names='aphermion',
-    periapsis_names='perihermion'
+    periapsis_names='perihermion',
+    plot_color='#ffd8b0'
 )
 
 venus = Body(
@@ -67,7 +59,19 @@ venus = Body(
     equatorial_radius=oc.venus_radius_equatorial,
     polar_radius=oc.venus_radius_polar,
     apoapsis_names=['apocytherion', 'apocytherean', 'apokrition'],
-    periapsis_names=['pericytherion', 'pericytherean', 'perikrition']
+    periapsis_names=['pericytherion', 'pericytherean', 'perikrition'],
+    plot_color='#d58f41'
+)
+
+earth = Body(
+    mass=oc.earth_mass,
+    mu=oc.earth_mu,
+    mean_radius=oc.earth_radius_mean,
+    equatorial_radius=oc.earth_radius_equatorial,
+    polar_radius=oc.earth_radius_polar,
+    apoapsis_names='apogee',
+    periapsis_names='perigee',
+    plot_color='#4e82ff'
 )
 
 mars = Body(
@@ -77,7 +81,8 @@ mars = Body(
     equatorial_radius=oc.mars_radius_equatorial,
     polar_radius=oc.mars_radius_polar,
     apoapsis_names='apoareion',
-    periapsis_names='periareion'
+    periapsis_names='periareion',
+    plot_color='#ffc98a'
 )
 
 jupiter = Body(
@@ -87,7 +92,8 @@ jupiter = Body(
     equatorial_radius=oc.jupiter_radius_equatorial,
     polar_radius=oc.jupiter_radius_polar,
     apoapsis_names=['apozene', 'apojove'],
-    periapsis_names=['perizene', 'perijove']
+    periapsis_names=['perizene', 'perijove'],
+    plot_color='#ff7726'
 )
 
 saturn = Body(
@@ -97,7 +103,8 @@ saturn = Body(
     equatorial_radius=oc.saturn_radius_equatorial,
     polar_radius=oc.saturn_radius_polar,
     apoapsis_names=['apokrone', 'aposaturnium'],
-    periapsis_names=['perikrone', 'perisaturnium']
+    periapsis_names=['perikrone', 'perisaturnium'],
+    plot_color='#ffe296'
 )
 
 uranus = Body(
@@ -107,7 +114,8 @@ uranus = Body(
     equatorial_radius=oc.uranus_radius_equatorial,
     polar_radius=oc.uranus_radius_polar,
     apoapsis_names='apouranion',
-    periapsis_names='periuranion'
+    periapsis_names='periuranion',
+    plot_color='#becaff'
 )
 
 neptune = Body(
@@ -117,5 +125,6 @@ neptune = Body(
     equatorial_radius=oc.neptune_radius_equatorial,
     polar_radius=oc.neptune_radius_polar,
     apoapsis_names='periposeidion',
-    periapsis_names='apoposeidion'
+    periapsis_names='apoposeidion',
+    plot_color='#8da4ff'
 )
