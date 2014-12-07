@@ -40,7 +40,7 @@ class KeplerianElements():
 
     def __init__(self, a=None, e=0, i=0, raan=0, arg_pe=0, M0=0,
                  body=None, ref_epoch=J2000):
-        self.a = a
+        self._a = a
         self.e = e
         self.i = i
         self.raan = raan
@@ -112,6 +112,21 @@ class KeplerianElements():
             maneuver = orbital.maneuver.Maneuver(maneuver)
 
         maneuver.__apply__(self)
+
+    @property
+    def a(self):
+        return self._a
+
+    @a.setter
+    def a(self, value):
+        """Set semimajor axis and fix M0.
+
+        To fix self.M0, self.n is called. self.n is a function of self.a.
+        This is safe, because the new value for self._a is set first, then
+        self.M0 is fixed.
+        """
+        self._a = value
+        self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
 
     @property
     def r(self):
@@ -325,18 +340,18 @@ class KeplerianElements():
     def __str__(self):
         return ('{name}:\n'
                 '\tSemimajor axis (a)                           = {a!r} m,\n'
-                '\tEccentricity (e)                             = {e!r} deg,\n'
+                '\tEccentricity (e)                             = {e!r},\n'
                 '\tInclination (i)                              = {i!r} deg,\n'
                 '\tRight ascension of the ascending node (raan) = {raan!r} deg,\n'
                 '\tArgument of perigee (arg_pe)                 = {arg_pe!r} deg,\n'
-                '\tMean anomaly at ref_epoch (M0)                   = {M0!r} deg,\n'
+                '\tMean anomaly at ref_epoch (M0)               = {M0!r} deg,\n'
                 '\tState:\n'
                 '\t\tMean anomaly (M)                         = {M!r} deg,\n'
                 '\t\tTime (t)                                 = {t!r} s'
                 ).format(
                     name=self.__class__.__name__,
                     a=degrees(self.a),
-                    e=degrees(self.e),
+                    e=self.e,
                     i=degrees(self.i),
                     raan=degrees(self.raan),
                     arg_pe=degrees(self.arg_pe),
@@ -345,7 +360,7 @@ class KeplerianElements():
                     t=self.t)
 
     def __getstate__(self):
-        return {'a': self.a,
+        return {'_a': self._a,
                 'e': self.e,
                 'i': self.i,
                 'raan': self.raan,
@@ -357,7 +372,7 @@ class KeplerianElements():
                 '_t': self._t}
 
     def __setstate__(self, state):
-        self.a = state['a']
+        self._a = state['_a']
         self.e = state['e']
         self.i = state['i']
         self.raan = state['raan']
