@@ -13,10 +13,11 @@ metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", init_data))
 AUTHOR_EMAIL = metadata['author']
 VERSION = metadata['version']
 LICENSE = metadata['license']
+DESCRIPTION = metadata['description']
 
 AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
 
-requires = ['numpy', 'scipy', 'astropy']
+requires = ['numpy', 'scipy', 'astropy', 'matplotlib']
 
 
 class PyTest(Command):
@@ -37,11 +38,11 @@ class PyTest(Command):
 
 setup(name='Orbital',
       version=VERSION,
-      description='Python Distribution Utilities',
+      description=DESCRIPTION,
       long_description=open('README.md').read(),
       author=AUTHOR,
       author_email=EMAIL,
-      url='https://github.com/RazerM',
+      url='https://github.com/RazerM/orbital',
       packages=find_packages(),
       cmdclass={'test': PyTest},
       classifiers=[
