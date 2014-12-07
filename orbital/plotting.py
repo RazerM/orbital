@@ -4,15 +4,16 @@ This implementation was inspired by poliastro (c) 2012 Juan Luis Cano (BSD Licen
 """
 from copy import copy
 
-import matplotlib as mpl
-import matplotlib.animation as animation
-import matplotlib.pyplot as plt
-import numpy as np
+from matplotlib import animation
+from matplotlib.patches import Circle
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from numpy import sin, cos
 from scipy.constants import kilo, pi
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
 
-from orbital.utilities import uvw_from_elements, orbit_radius
+from orbital.utilities import uvw_from_elements, orbit_radius, saved_state
 
 
 def plot2d(orbit, animate=False, speedup=5000):
@@ -51,32 +52,31 @@ class Plotter2D():
         else:
             self.fig = plt.figure()
             axes = self.fig.add_subplot(111)
+
         self.axes = axes
-        self.num_points = num_points
-
-    def plot(self, orbit):
-        f = np.linspace(0, 2 * pi, self.num_points)
-
-        p = orbit.a * (1 - orbit.e * 2)
-        pos = np.array([cos(f), sin(f), 0 * f]) * p / (1 + orbit.e * cos(f))
-        pos /= kilo
-
-        self.axes.add_patch(
-            mpl.patches.Circle((0, 0), orbit.body.mean_radius / kilo,
-                               lw=0, color='#EBEBEB'))
-
-        self.axes.plot(pos[0, :], pos[1, :], '--', color='red')
         self.axes.set_aspect(1)
-
-        f = orbit.f
-        p = orbit.a * (1 - orbit.e * 2)
-        pos = np.array([cos(f), sin(f), 0 * f]) * p / (1 + orbit.e * cos(f))
-        pos /= kilo
-
-        self.pos_dot, = self.axes.plot(pos[0], pos[1], 'o', mew=0)
-
         self.axes.set_xlabel("$p$ [km]")
         self.axes.set_ylabel("$q$ [km]")
+
+        self.points_per_rad = num_points / (2 * pi)
+
+    def plot(self, orbit, maneuver=None):
+        self._plot_body(orbit)
+
+        if maneuver is None:
+            self._plot_orbit(orbit)
+            self.pos_dot = self._plot_position(orbit)
+        else:
+            self._plot_orbit(orbit, label='Initial orbit')
+            self.propagate_counter = 1
+
+            with saved_state(orbit):
+                for operation in maneuver.operations:
+                    if hasattr(operation, '__plot__') and callable(getattr(operation, '__plot__')):
+                        with saved_state(orbit):
+                            operation.__plot__(orbit, self)
+                    orbit.apply_maneuver(operation)
+                self.axes.legend()
 
     def animate(self, orbit, speedup=5000):
         # Copy orbit so we can change anomaly without restoring state
@@ -84,7 +84,7 @@ class Plotter2D():
 
         self.plot(orbit)
 
-        p = orbit.a * (1 - orbit.e * 2)
+        p = orbit.a * (1 - orbit.e ** 2)
 
         def fpos(f):
             pos = np.array([cos(f), sin(f), 0 * f]) * p / (1 + orbit.e * cos(f))
@@ -106,6 +106,49 @@ class Plotter2D():
         ani = animation.FuncAnimation(
             self.fig, animate, len(times), interval=interval, blit=False)
 
+    @staticmethod
+    def _perifocal_coords(orbit, f):
+        p = orbit.a * (1 - orbit.e ** 2)
+        pos = np.array([cos(f), sin(f), 0 * f]) * p / (1 + orbit.e * cos(f))
+        pos /= kilo
+        return pos
+
+    def _plot_orbit(self, orbit, f1=0, f2=2 * pi, label=None):
+        if f2 < f1:
+            f2 += 2 * pi
+
+        num_points = self.points_per_rad * (f2 - f1)
+        f = np.linspace(f1, f2, num_points)
+
+        pos = self._perifocal_coords(orbit, f)
+
+        self.axes.plot(pos[0, :], pos[1, :], '--', linewidth=1, label=label)
+
+    def _plot_position(self, orbit, f=None, propagated=False, label=None):
+        if f is None:
+            f = orbit.f
+
+        pos = self._perifocal_coords(orbit, f)
+
+        if propagated:
+            if label is not None:
+                raise TypeError('propagated flag sets label automatically')
+
+            label = 'Propagated position {}'.format(self.propagate_counter)
+            self.propagate_counter += 1
+
+        pos_dot, = self.axes.plot(
+            pos[0], pos[1], 'o', markeredgewidth=0, label=label)
+
+        return pos_dot
+
+    def _plot_body(self, orbit):
+        color = '#EBEBEB'
+        if orbit.body.plot_color is not None:
+            color = orbit.body.plot_color
+        self.axes.add_patch(Circle((0, 0), orbit.body.mean_radius / kilo,
+                                   linewidth=0, color=color))
+
 
 class Plotter3D():
     """3D Plotter
@@ -119,35 +162,18 @@ class Plotter3D():
             self.fig = plt.figure()
             axes = self.fig.add_subplot(111, projection='3d')
         self.axes = axes
-        self.num_points = num_points
+        self.axes.set_xlabel("$x$ [km]")
+        self.axes.set_ylabel("$y$ [km]")
+        self.axes.set_zlabel("$z$ [km]")
+
+        self.points_per_rad = num_points / (2 * pi)
 
     def plot(self, orbit):
-        # Plot orbit
-        f = np.linspace(0, 2 * pi, self.num_points)
-        U, _, _ = uvw_from_elements(orbit.i, orbit.raan, orbit.arg_pe, f)
-        pos = orbit_radius(orbit.a, orbit.e, f) * U
-        x, y, z = pos[0, :], pos[1, :], pos[2, :]
-        x, y, z = x / kilo, y / kilo, z / kilo
+        self._plot_body(orbit)
 
-        self.axes.plot(x, y, z, '--', color='red')
+        x, y, z = self._plot_orbit(orbit)
 
-        # Plot body
-        u = np.linspace(0, 2 * np.pi, 100)
-        v = np.linspace(0, np.pi, 50)
-        cx = orbit.body.mean_radius * np.outer(np.cos(u), np.sin(v))
-        cy = orbit.body.mean_radius * np.outer(np.sin(u), np.sin(v))
-        cz = orbit.body.mean_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-        cx, cy, cz = cx / kilo, cy / kilo, cz / kilo
-        self.axes.plot_surface(cx, cy, cz, rstride=5, cstride=5, color='#EBEBEB', edgecolors='#ADADAD', shade=False)
-
-        # Plot current position
-        f = orbit.f
-        U, _, _ = uvw_from_elements(orbit.i, orbit.raan, orbit.arg_pe, f)
-        pos = orbit_radius(orbit.a, orbit.e, f) * U
-        px, py, pz = pos[0], pos[1], pos[2]
-        px, py, pz = px / kilo, py / kilo, pz / kilo
-
-        self.pos_dot, = self.axes.plot([px], [py], [pz], 'o')
+        self.pos_dot = self._plot_position(orbit)
 
         # Thanks to the following SO answer, we can make sure axes are equal
         # http://stackoverflow.com/a/13701747/2093785
@@ -165,10 +191,6 @@ class Plotter3D():
 
         for xb, yb, zb in zip(Xb, Yb, Zb):
             self.axes.plot([xb], [yb], [zb], 'w')
-
-        self.axes.set_xlabel("$x$ [km]")
-        self.axes.set_ylabel("$y$ [km]")
-        self.axes.set_zlabel("$z$ [km]")
 
     def animate(self, orbit, speedup=5000):
         # Copy orbit so we can change anomaly without restoring state
@@ -199,3 +221,57 @@ class Plotter3D():
         # blit=True causes an error on OS X, disable for now.
         ani = animation.FuncAnimation(
             self.fig, animate, len(times), interval=interval, blit=False)
+
+    @staticmethod
+    def _xyz_coords(orbit, f):
+        U, _, _ = uvw_from_elements(orbit.i, orbit.raan, orbit.arg_pe, f)
+        pos = orbit_radius(orbit.a, orbit.e, f) * U
+        pos /= kilo
+        return pos
+
+    def _plot_orbit(self, orbit, f1=0, f2=2 * pi, label=None):
+        if f2 < f1:
+            f2 += 2 * pi
+
+        num_points = self.points_per_rad * (f2 - f1)
+        f = np.linspace(f1, f2, num_points)
+
+        pos = self._xyz_coords(orbit, f)
+        x, y, z = pos[0, :], pos[1, :], pos[2, :]
+
+        self.axes.plot(x, y, z, '--', linewidth=1, label=label)
+
+        return x, y, z
+
+    def _plot_position(self, orbit, f=None, propagated=False, label=None):
+        if f is None:
+            f = orbit.f
+
+        pos = self._xyz_coords(orbit, f)
+        x, y, z = pos[0], pos[1], pos[2]
+
+        if propagated:
+            if label is not None:
+                raise TypeError('propagated flag sets label automatically')
+
+            label = 'Propagated position {}'.format(self.propagate_counter)
+            self.propagate_counter += 1
+
+        pos_dot, = self.axes.plot(
+            [x], [y], [z], 'o', markeredgewidth=0, label=label)
+
+        return pos_dot
+
+    def _plot_body(self, orbit):
+        color = '#EBEBEB'
+        if orbit.body.plot_color is not None:
+            color = orbit.body.plot_color
+
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 50)
+        cx = orbit.body.mean_radius * np.outer(np.cos(u), np.sin(v))
+        cy = orbit.body.mean_radius * np.outer(np.sin(u), np.sin(v))
+        cz = orbit.body.mean_radius * np.outer(np.ones(np.size(u)), np.cos(v))
+        cx, cy, cz = cx / kilo, cy / kilo, cz / kilo
+        self.axes.plot_surface(cx, cy, cz, rstride=5, cstride=5, color=color,
+                               edgecolors='#ADADAD', shade=False)
