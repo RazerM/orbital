@@ -1,5 +1,3 @@
-from copy import copy
-
 from scipy.constants import pi
 from orbital.utilities import (
     elements_for_apsides, saved_state, mean_anomaly_from_true,
@@ -31,6 +29,9 @@ class Operation:
 
 
 class ImpulseOperation(Operation):
+    def __init__(self):
+        super().__init__()
+
     def velocity_delta(self):
         raise NotImplementedError(
             'Subclasses of {}.{} must implement {}'
@@ -38,6 +39,9 @@ class ImpulseOperation(Operation):
 
 
 class TimeOperation(Operation):
+    def __init__(self):
+        super().__init__()
+
     def time_delta(self, orbit):
         """Return the time delta to propagate the orbit by.
 
@@ -51,6 +55,7 @@ class TimeOperation(Operation):
 
 class SetApocenterRadiusTo(ImpulseOperation):
     def __init__(self, apocenter_radius):
+        super().__init__()
         self.apocenter_radius = apocenter_radius
 
     def __apply__(self, orbit):
@@ -59,6 +64,14 @@ class SetApocenterRadiusTo(ImpulseOperation):
                                     orbit.pericenter_radius)
         orbit.a = a
         orbit.e = e
+
+    def __plot__(self, orbit, plotter):
+        if orbit.apocenter_radius > self.apocenter_radius:
+            label = 'Lowered apocenter'
+        else:
+            label = 'Raised apocenter'
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, f1=0, f2=pi, label=label)
 
     def velocity_delta(self, orbit):
         with saved_state(orbit):
@@ -81,6 +94,7 @@ class SetApocenterRadiusTo(ImpulseOperation):
 
 class SetApocenterAltitudeTo(ImpulseOperation):
     def __init__(self, apocenter_altitude):
+        super().__init__()
         self.apocenter_altitude = apocenter_altitude
 
     def __apply__(self, orbit):
@@ -90,6 +104,14 @@ class SetApocenterAltitudeTo(ImpulseOperation):
                                     orbit.pericenter_radius)
         orbit.a = a
         orbit.e = e
+
+    def __plot__(self, orbit, plotter):
+        if orbit.apocenter_radius > self.apocenter_radius:
+            label = 'Lowered apocenter'
+        else:
+            label = 'Raised apocenter'
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, f1=0, f2=pi, label=label)
 
     def velocity_delta(self, orbit):
         with saved_state(orbit):
@@ -113,6 +135,7 @@ class SetApocenterAltitudeTo(ImpulseOperation):
 
 class ChangeApocenterBy(ImpulseOperation):
     def __init__(self, delta):
+        super().__init__()
         self.delta = delta
 
     def __apply__(self, orbit):
@@ -121,6 +144,14 @@ class ChangeApocenterBy(ImpulseOperation):
                                     orbit.pericenter_radius)
         orbit.a = a
         orbit.e = e
+
+    def __plot__(self, orbit, plotter):
+        if self.delta < 0:
+            label = 'Lowered apocenter'
+        else:
+            label = 'Raised apocenter'
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, f1=0, f2=pi, label=label)
 
     def velocity_delta(self, orbit):
         with saved_state(orbit):
@@ -143,6 +174,7 @@ class ChangeApocenterBy(ImpulseOperation):
 
 class SetPericenterRadiusTo(ImpulseOperation):
     def __init__(self, pericenter_radius):
+        super().__init__()
         self.pericenter_radius = pericenter_radius
 
     def __apply__(self, orbit):
@@ -151,6 +183,14 @@ class SetPericenterRadiusTo(ImpulseOperation):
                                     self.pericenter_radius)
         orbit.a = a
         orbit.e = e
+
+    def __plot__(self, orbit, plotter):
+        if orbit.pericenter_radius > self.pericenter_radius:
+            label = 'Lowered pericenter'
+        else:
+            label = 'Raised pericenter'
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, f1=0, f2=pi, label=label)
 
     def velocity_delta(self, orbit):
         with saved_state(orbit):
@@ -173,6 +213,7 @@ class SetPericenterRadiusTo(ImpulseOperation):
 
 class SetPericenterAltitudeTo(ImpulseOperation):
     def __init__(self, pericenter_altitude):
+        super().__init__()
         self.pericenter_altitude = pericenter_altitude
 
     def __apply__(self, orbit):
@@ -182,6 +223,14 @@ class SetPericenterAltitudeTo(ImpulseOperation):
                                     pericenter_radius)
         orbit.a = a
         orbit.e = e
+
+    def __plot__(self, orbit, plotter):
+        if orbit.pericenter_radius > self.pericenter_radius:
+            label = 'Lowered pericenter'
+        else:
+            label = 'Raised pericenter'
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, f1=0, f2=pi, label=label)
 
     def velocity_delta(self, orbit):
         with saved_state(orbit):
@@ -205,6 +254,7 @@ class SetPericenterAltitudeTo(ImpulseOperation):
 
 class ChangePericenterBy(ImpulseOperation):
     def __init__(self, delta):
+        super().__init__()
         self.delta = delta
 
     def __apply__(self, orbit):
@@ -213,6 +263,14 @@ class ChangePericenterBy(ImpulseOperation):
                                     orbit.pericenter_radius + self.delta)
         orbit.a = a
         orbit.e = e
+
+    def __plot__(self, orbit, plotter):
+        if self.delta < 0:
+            label = 'Lowered pericenter'
+        else:
+            label = 'Raised pericenter'
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, f1=0, f2=pi, label=label)
 
     def velocity_delta(self, orbit):
         with saved_state(orbit):
@@ -244,6 +302,8 @@ class PropagateAnomalyTo(TimeOperation):
     :param float f: True anomaly
     """
     def __init__(self, **kwargs):
+        super().__init__()
+
         # The defaults
         valid_args = set(['M', 'E', 'f'])
 
@@ -282,6 +342,13 @@ class PropagateAnomalyTo(TimeOperation):
 
         return (M - orbit.M) / orbit.n
 
+    def __plot__(self, orbit, plotter):
+        f1 = orbit.f
+        orbit.t += self.time_delta(orbit)
+        f2 = orbit.f
+
+        plotter._plot_position(orbit, f2, propagated=True)
+
     def __repr__(self):
         return '{}({key}={anomaly!r})'.format(__class__.__name__, key=self.key,
                                               anomaly=self.anomaly)
@@ -297,6 +364,8 @@ class PropagateAnomalyBy(TimeOperation):
     :param float f: True anomaly
     """
     def __init__(self, **kwargs):
+        super().__init__()
+
         # The defaults
         valid_args = set(['M', 'E', 'f'])
 
@@ -321,7 +390,6 @@ class PropagateAnomalyBy(TimeOperation):
         self.key, self.anomaly = kwargs.popitem()
 
     def time_delta(self, orbit):
-
         if self.key == 'f':
             orbits, f = ou.divmod(self.anomaly, 2 * pi)
             M = mean_anomaly_from_true(orbit.e, f)
@@ -333,6 +401,13 @@ class PropagateAnomalyBy(TimeOperation):
         elif self.key == 'M':
             return self.anomaly / orbit.n
 
+    def __plot__(self, orbit, plotter):
+        f1 = orbit.f
+        orbit.t += self.time_delta(orbit)
+        f2 = orbit.f
+
+        plotter._plot_position(orbit, f2, propagated=True)
+
     def __repr__(self):
         return '{}({key}={anomaly!r})'.format(__class__.__name__, key=self.key,
                                               anomaly=self.anomaly)
@@ -342,6 +417,7 @@ class Circularise(ImpulseOperation):
     """Circularise an orbit."""
     def __init__(self, raise_pericenter=True):
         """Assumptions: anomaly is at the correct apside."""
+        super().__init__()
         self.raise_pericenter = raise_pericenter
 
     def __apply__(self, orbit):
@@ -353,6 +429,10 @@ class Circularise(ImpulseOperation):
         a, e = elements_for_apsides(radius, radius)
         orbit.a = a
         orbit.e = e
+
+    def __plot__(self, orbit, plotter):
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, label='Circularised')
 
     def velocity_delta(self, orbit):
         with saved_state(orbit):
@@ -382,19 +462,23 @@ class SetPericenterHere(Operation):
     """For a circular orbit, set the pericenter position (in preparation for
         a maneuver to an elliptical orbit.
     """
+    def __init__(self):
+        super().__init__()
+
     def __apply__(self, orbit):
         """Assumptions: orbit is circular"""
         orbit.arg_pe = orbit.f
         orbit.f = 0
+
+    def __plot__(self, orbit, plotter):
+        self.__apply__(orbit)
+        plotter._plot_position(orbit, label='Pericenter set here')
 
     def __repr__(self):
         return '{}()'.format(__class__.__name__)
 
 
 class Maneuver:
-    """Todo: Each maneuver will contain a list of operations, which are therefore
-    independent of orbit and calculated at the time the maneuver is applied.
-    """
     def __init__(self, operations):
         if not isinstance(operations, list):
             operations = [operations]
