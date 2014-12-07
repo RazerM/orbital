@@ -63,6 +63,10 @@ def saved_state(orbit):
     orbit.__setstate__(state)
 
 
+def radius_from_altitude(altitude, body):
+    return altitude + body.mean_radius
+
+
 class ConvergenceError(Exception):
     pass
 
