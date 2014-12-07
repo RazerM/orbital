@@ -137,11 +137,14 @@ class KeplerianElements():
             "'{name}' object has no attribute '{attr}'"
             .format(name=type(self).__name__, attr=attr))
 
-    def apply_maneuver(self, maneuver):
+    def apply_maneuver(self, maneuver, iter=False):
         if isinstance(maneuver, orbital.maneuver.Operation):
             maneuver = orbital.maneuver.Maneuver(maneuver)
 
-        maneuver.__apply__(self)
+        if iter:
+            return maneuver.__iapply__(self)
+        else:
+            maneuver.__apply__(self)
 
     @property
     def a(self):

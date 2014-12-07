@@ -26,6 +26,10 @@ class Operation:
     Subclasses can implement an __apply__ method as a shortcut method, rather
     than applying a velocity change directly, for example.
     """
+    def plot(self, orbit, plotter):
+        """Convenience method to call __plot__ if defined by subclass."""
+        if hasattr(self, '__plot__') and callable(getattr(self, '__plot__')):
+            self.__plot__(orbit, plotter)
 
 
 class ImpulseOperation(Operation):
@@ -33,6 +37,7 @@ class ImpulseOperation(Operation):
         super().__init__()
 
     def velocity_delta(self):
+        """Return velocity delta of impulse."""
         raise NotImplementedError(
             'Subclasses of {}.{} must implement {}'
             .format(__name__, __class__.__name__, self.velocity_delta.__name__))
@@ -548,6 +553,17 @@ class Maneuver:
                 orbit.v += operation.velocity_delta(orbit)
             elif isinstance(operation, TimeOperation):
                 orbit.t += operation.time_delta(orbit)
+
+    def __iapply__(self, orbit):
+        yield orbit
+        for operation in self.operations:
+            if hasattr(operation, '__apply__') and callable(getattr(operation, '__apply__')):
+                operation.__apply__(orbit)
+            elif isinstance(operation, ImpulseOperation):
+                orbit.v += operation.velocity_delta(orbit)
+            elif isinstance(operation, TimeOperation):
+                orbit.t += operation.time_delta(orbit)
+            yield orbit
 
     def __repr__(self):
         return '{}({!r})'.format(__class__.__name__, self.operations)

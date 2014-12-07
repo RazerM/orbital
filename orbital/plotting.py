@@ -16,13 +16,13 @@ import numpy as np
 from orbital.utilities import uvw_from_elements, orbit_radius, saved_state
 
 
-def plot2d(orbit, animate=False, speedup=5000):
+def plot2d(orbit, title='', animate=False, speedup=5000):
     """Convenience function to 2D plot orbit in a new figure."""
     plotter = Plotter2D()
     if animate:
-        plotter.animate(orbit, speedup)
+        plotter.animate(orbit, title=title, speedup=speedup)
     else:
-        plotter.plot(orbit)
+        plotter.plot(orbit, title=title)
 
 
 def plot3d(orbit, animate=False, speedup=5000):
@@ -42,9 +42,6 @@ class Plotter2D():
     """2D Plotter
 
     Handles still and animated plots of an orbit.
-
-    TODO: Allow maneuver plots. I'm considering adding a maneuver parameter to
-    plot() that would plot after each Operation.
     """
     def __init__(self, axes=None, num_points=100):
         if axes:
@@ -60,7 +57,7 @@ class Plotter2D():
 
         self.points_per_rad = num_points / (2 * pi)
 
-    def plot(self, orbit, maneuver=None):
+    def plot(self, orbit, maneuver=None, title=''):
         self._plot_body(orbit)
 
         if maneuver is None:
@@ -71,15 +68,17 @@ class Plotter2D():
             self.propagate_counter = 1
 
             with saved_state(orbit):
-                for operation in maneuver.operations:
-                    if hasattr(operation, '__plot__') and callable(getattr(operation, '__plot__')):
-                        with saved_state(orbit):
-                            operation.__plot__(orbit, self)
-                    orbit.apply_maneuver(operation)
-                self.axes.legend()
+                operations = maneuver.operations
+                orbits = orbit.apply_maneuver(maneuver, iter=True)
 
-    def animate(self, orbit, speedup=5000):
-        # Copy orbit so we can change anomaly without restoring state
+                for operation, orbit in zip(operations, orbits):
+                    with saved_state(orbit):
+                        operation.plot(orbit, self)
+                self.axes.legend()
+        self.axes.set_title(title)
+
+    def animate(self, orbit, speedup=5000, title=''):
+        # Copy orbit, because it will be modified in the animation callback.
         orbit = copy(orbit)
 
         self.plot(orbit)
@@ -193,7 +192,7 @@ class Plotter3D():
             self.axes.plot([xb], [yb], [zb], 'w')
 
     def animate(self, orbit, speedup=5000):
-        # Copy orbit so we can change anomaly without restoring state
+        # Copy orbit, because it will be modified in the animation callback.
         orbit = copy(orbit)
 
         self.plot(orbit)
