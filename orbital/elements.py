@@ -79,7 +79,7 @@ class KeplerianElements():
         return ke
 
     @classmethod
-    def with_apside_altitudes(cls, alt1, alt2, i=0, raan=0,  arg_pe=0, M0=0,
+    def with_apside_altitudes(cls, alt1, alt2, i=0, raan=0, arg_pe=0, M0=0,
                               body=None, ref_epoch=J2000):
         """Initialise orbit with given apside altitudes."""
 
@@ -279,11 +279,11 @@ class KeplerianElements():
 
     @property
     def apocenter_radius(self):
-        return (1 + self. e) * self.a
+        return (1 + self.e) * self.a
 
     @property
     def pericenter_radius(self):
-        return (1 - self. e) * self.a
+        return (1 - self.e) * self.a
 
     @property
     def E(self):
@@ -315,8 +315,8 @@ class KeplerianElements():
         cos_i = cos(self.i)
 
         return np.array(
-            [cos_u * cos_raan - sin_u* sin_raan * cos_i,
-             cos_u * sin_raan + sin_u* cos_raan * cos_i,
+            [cos_u * cos_raan - sin_u * sin_raan * cos_i,
+             cos_u * sin_raan + sin_u * cos_raan * cos_i,
              sin_u * sin(self.i)]
         )
 
