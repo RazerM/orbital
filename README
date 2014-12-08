@@ -1,0 +1,28 @@
+Orbital
+-------
+
+|Build Status| |Test Coverage| |PyPI Version| |Python Version| |MIT
+License|
+
+Orbital is a high level orbital mechanics package.
+
+Installation
+~~~~~~~~~~~~
+
+.. code:: bash
+
+    $ pip install orbitalpy
+
+`Go to Package Documentation <http://pythonhosted.org/orbitalpy/>`__
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |Build Status| image:: http://img.shields.io/travis/RazerM/orbital.svg?style=flat-square
+   :target: https://travis-ci.org/RazerM/orbital
+.. |Test Coverage| image:: http://img.shields.io/codecov/c/github/RazerM/orbital.svg?style=flat-square
+   :target: https://codecov.io/github/RazerM/orbital
+.. |PyPI Version| image:: http://img.shields.io/pypi/v/orbitalpy.svg?style=flat-square
+   :target: https://pypi.python.org/pypi/orbitalpy/
+.. |Python Version| image:: http://img.shields.io/badge/python-3.0%2B-brightgreen.svg?style=flat-square
+   :target: https://www.python.org/downloads/
+.. |MIT License| image:: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
+   :target: https://raw.githubusercontent.com/RazerM/orbital/master/LICENSE
