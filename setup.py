@@ -36,10 +36,10 @@ class PyTest(Command):
         errno = subprocess.call([sys.executable, 'runtests.py'])
         raise SystemExit(errno)
 
-setup(name='Orbital',
+setup(name='OrbitalPy',
       version=VERSION,
       description=DESCRIPTION,
-      long_description=open('README.md').read(),
+      long_description=open('README').read(),
       author=AUTHOR,
       author_email=EMAIL,
       url='https://github.com/RazerM/orbital',
