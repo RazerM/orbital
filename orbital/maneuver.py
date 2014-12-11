@@ -1,4 +1,7 @@
+from copy import copy
+
 from scipy.constants import pi
+
 from orbital.utilities import (
     elements_for_apsides, saved_state, mean_anomaly_from_true,
     mean_anomaly_from_eccentric)
@@ -9,6 +12,7 @@ __all__ = [
     'SetPericenterRadiusTo',
     'SetApocenterAltitudeTo',
     'SetPericenterAltitudeTo',
+    'Circularise',
     'ChangeApocenterBy',
     'ChangePericenterBy',
     'SetPericenterHere',
@@ -30,6 +34,20 @@ class Operation:
         """Convenience method to call __plot__ if defined by subclass."""
         if hasattr(self, '__plot__') and callable(getattr(self, '__plot__')):
             self.__plot__(orbit, plotter)
+
+    def __add__(self, other):
+        if isinstance(other, Operation):
+            return Maneuver([copy(self), copy(other)])
+        elif isinstance(other, Maneuver):
+            return Maneuver([copy(self)] + other.operations)
+        else:
+            return NotImplemented
+
+    def __radd__(self, other):
+        if isinstance(other, Maneuver):
+            return Maneuver(other.operations + [copy(self)])
+        else:
+            return NotImplemented
 
 
 class ImpulseOperation(Operation):
@@ -567,3 +585,9 @@ class Maneuver:
 
     def __repr__(self):
         return '{}({!r})'.format(__class__.__name__, self.operations)
+
+    def __add__(self, other):
+        if isinstance(other, Maneuver):
+            return Maneuver(self.operations + other.operations)
+        else:
+            return NotImplemented
