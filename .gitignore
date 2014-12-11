@@ -7,3 +7,4 @@ build/
 *.egg-info/
 _build/
 .ipynb_checkpoints/
+dist/
