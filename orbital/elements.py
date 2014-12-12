@@ -1,4 +1,5 @@
 from math import acos, cos, sin, sqrt, degrees
+import warnings
 
 import numpy as np
 from astropy import time
@@ -226,6 +227,8 @@ class KeplerianElements():
 
     @M.setter
     def M(self, value):
+        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
+                      '.propagate_anomaly_to() instead.', UserWarning)
         self._M = ou.mod(value, 2 * pi)
 
     @property
@@ -292,7 +295,9 @@ class KeplerianElements():
 
     @E.setter
     def E(self, value):
-        self.M = mean_anomaly_from_eccentric(self.e, value)
+        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
+                      '.propagate_anomaly_to() instead.', UserWarning)
+        self._M = mean_anomaly_from_eccentric(self.e, value)
 
     @property
     def f(self):
@@ -301,7 +306,9 @@ class KeplerianElements():
 
     @f.setter
     def f(self, value):
-        self.M = mean_anomaly_from_true(self.e, value)
+        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
+                      '.propagate_anomaly_to() instead.', UserWarning)
+        self._M = mean_anomaly_from_true(self.e, value)
 
     @property
     def U(self):

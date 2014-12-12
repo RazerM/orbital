@@ -8,15 +8,18 @@ from orbital.utilities import (
 import orbital.utilities as ou
 
 __all__ = [
-    'SetApocenterRadiusTo',
-    'SetPericenterRadiusTo',
-    'SetApocenterAltitudeTo',
-    'SetPericenterAltitudeTo',
-    'Circularise',
     'ChangeApocenterBy',
+    'ChangeInclinationBy',
     'ChangePericenterBy',
+    'Circularise',
+    'Maneuver',
+    'SetApocenterAltitudeTo',
+    'SetApocenterRadiusTo',
+    'SetInclinationTo',
+    'SetPericenterAltitudeTo',
     'SetPericenterHere',
-    'Maneuver']
+    'SetPericenterRadiusTo',
+]
 
 
 class Operation:
@@ -82,7 +85,6 @@ class SetApocenterRadiusTo(ImpulseOperation):
         self.apocenter_radius = apocenter_radius
 
     def __apply__(self, orbit):
-        """This operation can be applied directly without using velocity delta."""
         a, e = elements_for_apsides(self.apocenter_radius,
                                     orbit.pericenter_radius)
         orbit.a = a
@@ -121,7 +123,6 @@ class SetApocenterAltitudeTo(ImpulseOperation):
         self.apocenter_altitude = apocenter_altitude
 
     def __apply__(self, orbit):
-        """This operation can be applied directly without using velocity delta."""
         apocenter_radius = orbit.body.mean_radius + self.apocenter_altitude
         a, e = elements_for_apsides(apocenter_radius,
                                     orbit.pericenter_radius)
@@ -162,7 +163,6 @@ class ChangeApocenterBy(ImpulseOperation):
         self.delta = delta
 
     def __apply__(self, orbit):
-        """This operation can be applied directly without using velocity delta."""
         a, e = elements_for_apsides(orbit.apocenter_radius + self.delta,
                                     orbit.pericenter_radius)
         orbit.a = a
@@ -201,7 +201,6 @@ class SetPericenterRadiusTo(ImpulseOperation):
         self.pericenter_radius = pericenter_radius
 
     def __apply__(self, orbit):
-        """This operation can be applied directly without using velocity delta."""
         a, e = elements_for_apsides(orbit.apocenter_radius,
                                     self.pericenter_radius)
         orbit.a = a
@@ -240,7 +239,6 @@ class SetPericenterAltitudeTo(ImpulseOperation):
         self.pericenter_altitude = pericenter_altitude
 
     def __apply__(self, orbit):
-        """This operation can be applied directly without using velocity delta."""
         pericenter_radius = orbit.body.mean_radius + self.pericenter_altitude
         a, e = elements_for_apsides(orbit.apocenter_radius,
                                     pericenter_radius)
@@ -281,7 +279,6 @@ class ChangePericenterBy(ImpulseOperation):
         self.delta = delta
 
     def __apply__(self, orbit):
-        """This operation can be applied directly without using velocity delta."""
         a, e = elements_for_apsides(orbit.apocenter_radius,
                                     orbit.pericenter_radius + self.delta)
         orbit.a = a
@@ -306,6 +303,58 @@ class ChangePericenterBy(ImpulseOperation):
             orbit.a = a
             orbit.e = e
 
+            new_velocity = orbit.v
+
+        return new_velocity - old_velocity
+
+    def __repr__(self):
+        return '{}({!r})'.format(__class__.__name__, self.delta)
+
+
+class SetInclinationTo(ImpulseOperation):
+    def __init__(self, inclination):
+        super().__init__()
+        self.inclination = inclination
+
+    def __apply__(self, orbit):
+        orbit.i = self.inclination
+
+    def __plot__(self, orbit, plotter):
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, label='Changed inclination')
+
+    def velocity_delta(self, orbit):
+        with saved_state(orbit):
+            orbit.f = 2 * pi - orbit.arg_pe
+            old_velocity = orbit.v
+
+            self.__apply__(orbit)
+            new_velocity = orbit.v
+
+        return new_velocity - old_velocity
+
+    def __repr__(self):
+        return '{}({!r})'.format(__class__.__name__, self.inclination)
+
+
+class ChangeInclinationBy(ImpulseOperation):
+    def __init__(self, delta):
+        super().__init__()
+        self.delta = delta
+
+    def __apply__(self, orbit):
+        orbit.i += self.delta
+
+    def __plot__(self, orbit, plotter):
+        self.__apply__(orbit)
+        plotter._plot_orbit(orbit, label='Changed inclination')
+
+    def velocity_delta(self, orbit):
+        with saved_state(orbit):
+            orbit.f = 2 * pi - orbit.arg_pe
+            old_velocity = orbit.v
+
+            self.__apply__(orbit)
             new_velocity = orbit.v
 
         return new_velocity - old_velocity
@@ -351,7 +400,6 @@ class PropagateAnomalyTo(TimeOperation):
         self.key, self.anomaly = kwargs.popitem()
 
     def time_delta(self, orbit):
-
         if self.key == 'f':
             M = mean_anomaly_from_true(orbit.e, self.anomaly)
         elif self.key == 'E':
@@ -551,12 +599,26 @@ class Maneuver:
         return cls(operations)
 
     @classmethod
-    def hohmann_transfer_to(cls, orbit):
+    def hohmann_transfer_to(cls, radius):
         operations = [
             SetPericenterHere(),
-            SetApocenterRadiusTo(orbit.apocenter_radius),
+            SetApocenterRadiusTo(radius),
             PropagateAnomalyTo(M=pi),
             Circularise()]
+        return cls(operations)
+
+    @classmethod
+    def set_inclination_to(cls, inclination):
+        operations = [
+            lambda orbit: PropagateAnomalyTo(f=2 * pi - orbit.arg_pe),
+            SetInclinationTo(inclination)]
+        return cls(operations)
+
+    @classmethod
+    def change_inclination_by(cls, delta):
+        operations = [
+            lambda orbit: PropagateAnomalyTo(f=2 * pi - orbit.arg_pe),
+            ChangeInclinationBy(delta)]
         return cls(operations)
 
     @classmethod
@@ -565,6 +627,8 @@ class Maneuver:
 
     def __apply__(self, orbit):
         for operation in self.operations:
+            if callable(operation):
+                operation = operation(orbit)
             if hasattr(operation, '__apply__') and callable(getattr(operation, '__apply__')):
                 operation.__apply__(orbit)
             elif isinstance(operation, ImpulseOperation):
@@ -573,15 +637,16 @@ class Maneuver:
                 orbit.t += operation.time_delta(orbit)
 
     def __iapply__(self, orbit):
-        yield orbit
         for operation in self.operations:
+            if callable(operation):
+                operation = operation(orbit)
+            yield orbit, operation
             if hasattr(operation, '__apply__') and callable(getattr(operation, '__apply__')):
                 operation.__apply__(orbit)
             elif isinstance(operation, ImpulseOperation):
                 orbit.v += operation.velocity_delta(orbit)
             elif isinstance(operation, TimeOperation):
                 orbit.t += operation.time_delta(orbit)
-            yield orbit
 
     def __repr__(self):
         return '{}({!r})'.format(__class__.__name__, self.operations)

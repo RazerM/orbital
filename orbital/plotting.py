@@ -16,22 +16,22 @@ import numpy as np
 from orbital.utilities import uvw_from_elements, orbit_radius, saved_state
 
 
-def plot2d(orbit, title='', animate=False, speedup=5000):
+def plot2d(orbit, title='', maneuver=None, animate=False, speedup=5000):
     """Convenience function to 2D plot orbit in a new figure."""
     plotter = Plotter2D()
     if animate:
         plotter.animate(orbit, title=title, speedup=speedup)
     else:
-        plotter.plot(orbit, title=title)
+        plotter.plot(orbit, title=title, maneuver=maneuver)
 
 
-def plot3d(orbit, animate=False, speedup=5000):
+def plot3d(orbit, title='', maneuver=None, animate=False, speedup=5000):
     """Convenience function to 3D plot orbit in a new figure."""
     plotter = Plotter3D()
     if animate:
-        plotter.animate(orbit, speedup)
+        plotter.animate(orbit, title=title, speedup=speedup)
     else:
-        plotter.plot(orbit)
+        plotter.plot(orbit, title=title, maneuver=maneuver)
 
 
 # Alias plot2d as plot
@@ -68,13 +68,10 @@ class Plotter2D():
             self.propagate_counter = 1
 
             with saved_state(orbit):
-                operations = maneuver.operations
-                orbits = orbit.apply_maneuver(maneuver, iter=True)
-
-                for operation, orbit in zip(operations, orbits):
+                for orbit, operation in orbit.apply_maneuver(maneuver, iter=True):
                     with saved_state(orbit):
                         operation.plot(orbit, self)
-                self.axes.legend()
+            self.axes.legend()
         self.axes.set_title(title)
 
     def animate(self, orbit, speedup=5000, title=''):
@@ -100,6 +97,8 @@ class Plotter2D():
             self.pos_dot.set_data(pos[0], pos[1])
 
             return self.pos_dot
+
+        self.axes.set_title(title)
 
         # blit=True causes an error on OS X, disable for now.
         ani = animation.FuncAnimation(
@@ -165,39 +164,41 @@ class Plotter3D():
         self.axes.set_ylabel("$y$ [km]")
         self.axes.set_zlabel("$z$ [km]")
 
+        # These are used to fix aspect ratio of final plot.
+        # See Plotter3D._force_aspect()
+        self._coords_x = np.array(0)
+        self._coords_y = np.array(0)
+        self._coords_z = np.array(0)
+
         self.points_per_rad = num_points / (2 * pi)
 
-    def plot(self, orbit):
+    def plot(self, orbit, maneuver=None, title=''):
         self._plot_body(orbit)
 
-        x, y, z = self._plot_orbit(orbit)
+        if maneuver is None:
+            self._plot_orbit(orbit)
+            self.pos_dot = self._plot_position(orbit)
+        else:
+            self._plot_orbit(orbit, label='Initial orbit')
+            self.propagate_counter = 1
 
-        self.pos_dot = self._plot_position(orbit)
+            with saved_state(orbit):
+                for orbit, operation in orbit.apply_maneuver(maneuver, iter=True):
+                    with saved_state(orbit):
+                        operation.plot(orbit, self)
+            self.axes.legend()
+        self.axes.set_title(title)
 
-        # Thanks to the following SO answer, we can make sure axes are equal
-        # http://stackoverflow.com/a/13701747/2093785
+        self._force_aspect()
 
-        # Create cubic bounding box to simulate equal aspect ratio
-        max_range = np.array([x.max() - x.min(),
-                              y.max() - y.min(),
-                              z.max() - z.min()]).max()
-        Xb = (0.5 * max_range * np.mgrid[-1:2:2, -1:2:2, -1:2:2][0].flatten() +
-              0.5 * (x.max() + x.min()))
-        Yb = (0.5 * max_range * np.mgrid[-1:2:2, -1:2:2, -1:2:2][1].flatten() +
-              0.5 * (y.max() + y.min()))
-        Zb = (0.5 * max_range * np.mgrid[-1:2:2, -1:2:2, -1:2:2][2].flatten() +
-              0.5 * (z.max() + z.min()))
-
-        for xb, yb, zb in zip(Xb, Yb, Zb):
-            self.axes.plot([xb], [yb], [zb], 'w')
-
-    def animate(self, orbit, speedup=5000):
+    def animate(self, orbit, speedup=5000, title=''):
         # Copy orbit, because it will be modified in the animation callback.
         orbit = copy(orbit)
 
         self.plot(orbit)
 
-        f = np.linspace(0, 2 * pi, self.num_points)
+        num_points = self.points_per_rad * 2 * pi
+        f = np.linspace(0, 2 * pi, num_points)
 
         def fpos(f):
             U, _, _ = uvw_from_elements(orbit.i, orbit.raan, orbit.arg_pe, f)
@@ -216,6 +217,8 @@ class Plotter3D():
             self.pos_dot.set_3d_properties([z])
 
             return self.pos_dot
+
+        self.axes.set_title(title)
 
         # blit=True causes an error on OS X, disable for now.
         ani = animation.FuncAnimation(
@@ -240,7 +243,7 @@ class Plotter3D():
 
         self.axes.plot(x, y, z, '--', linewidth=1, label=label)
 
-        return x, y, z
+        self._append_coords_for_aspect(x, y, z)
 
     def _plot_position(self, orbit, f=None, propagated=False, label=None):
         if f is None:
@@ -274,3 +277,32 @@ class Plotter3D():
         cx, cy, cz = cx / kilo, cy / kilo, cz / kilo
         self.axes.plot_surface(cx, cy, cz, rstride=5, cstride=5, color=color,
                                edgecolors='#ADADAD', shade=False)
+
+    def _append_coords_for_aspect(self, x, y, z):
+        self._coords_x = np.append(self._coords_x, x)
+        self._coords_y = np.append(self._coords_y, y)
+        self._coords_z = np.append(self._coords_z, z)
+
+    def _force_aspect(self):
+        # Thanks to the following SO answer, we can make sure axes are equal
+        # http://stackoverflow.com/a/13701747/2093785
+
+        # Create cubic bounding box to simulate equal aspect ratio
+
+        x = self._coords_x
+        y = self._coords_y
+        z = self._coords_z
+
+        max_range = np.array([x.max() - x.min(),
+                              y.max() - y.min(),
+                              z.max() - z.min()]).max()
+        Xb = (0.5 * max_range * np.mgrid[-1:2:2, -1:2:2, -1:2:2][0].flatten() +
+              0.5 * (x.max() + x.min()))
+        Yb = (0.5 * max_range * np.mgrid[-1:2:2, -1:2:2, -1:2:2][1].flatten() +
+              0.5 * (y.max() + y.min()))
+        Zb = (0.5 * max_range * np.mgrid[-1:2:2, -1:2:2, -1:2:2][2].flatten() +
+              0.5 * (z.max() + z.min()))
+
+        for xb, yb, zb in zip(Xb, Yb, Zb):
+            print(xb, yb, zb)
+            self.axes.plot([xb], [yb], [zb], 'w')
