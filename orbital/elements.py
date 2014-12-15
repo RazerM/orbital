@@ -1,16 +1,19 @@
-from math import acos, cos, sin, sqrt, degrees
 import warnings
 
 import numpy as np
 from astropy import time
+from numpy import cos, cross, dot, sign, sin, sqrt, degrees
+from numpy import arccos as acos
 from numpy.linalg import norm
-from scipy import cross, dot, sign
 from scipy.constants import pi
 
 import orbital.maneuver
 import orbital.utilities as ou
 from orbital.utilities import *
 
+
+class OrbitalWarning(Warning):
+    pass
 
 J2000 = time.Time('J2000', scale='utc')
 
@@ -138,13 +141,15 @@ class KeplerianElements():
             "'{name}' object has no attribute '{attr}'"
             .format(name=type(self).__name__, attr=attr))
 
-    def apply_maneuver(self, maneuver, iter=False):
+    def apply_maneuver(self, maneuver, iter=False, copy=False):
         if isinstance(maneuver, orbital.maneuver.Operation):
             maneuver = orbital.maneuver.Maneuver(maneuver)
 
         if iter:
-            return maneuver.__iapply__(self)
+            return maneuver.__iapply__(self, copy)
         else:
+            if copy:
+                raise ValueError('copy can only be True if iter=True')
             maneuver.__apply__(self)
 
     @property
@@ -155,7 +160,7 @@ class KeplerianElements():
     def a(self, value):
         """Set semimajor axis and fix M0.
 
-        To fix self.M0, self.n is called. self.n is a function of self.a.
+        To fix self.M0, self.n is called. self.n is a function of self.a
         This is safe, because the new value for self._a is set first, then
         self.M0 is fixed.
         """
@@ -178,48 +183,53 @@ class KeplerianElements():
 
     @v.setter
     def v(self, value):
-        v = np.array([value.x, value.y, value.z])
-        h = cross(self.r, v)
-        n = cross(np.array([0, 0, 1]), h)
-
         r = self.r
-        r = np.array([r.x, r.y, r.z])
-        mu = self.body.mu
-        ev = 1 / mu * ((norm(v) ** 2 - mu / norm(r)) * r - dot(r, v) * v)
+        v = value
+        h = angular_momentum(r, v)
+        n = node_vector(h)
 
-        E = norm(v) ** 2 / 2 - mu / norm(r)
+        mu = self.body.mu
+        ev = eccentricity_vector(r, v, mu)
+
+        E = specific_orbital_energy(r, v, mu)
 
         self.a = -mu / (2 * E)
         self.e = norm(ev)
-        self.i = acos(h[2] / norm(h))
+        self.i = acos(h.z / norm(h))
 
         if self.i == 0:
             self.raan = 0
-            self.arg_pe = acos(ev[0] / norm(ev))
+            if self.e == 0:
+                self.arg_pe = 0
+            else:
+                self.arg_pe = acos(ev.x / norm(ev))
         else:
-            self.raan = acos(ev[0] / norm(n))
-            if n[1] < 0:
+            self.raan = acos(ev.x / norm(n))
+            if n.y < 0:
                 self.raan = 2 * pi - self.raan
             self.arg_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
 
-        if self.e == 0:
-            if self.i == 0:
-                self.f = acos(r[0] / norm(r))
-                if v[0] > 0:
-                    self.f = 2 * pi - self.f
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            if self.e == 0:
+                if self.i == 0:
+                    self.f = acos(r.x / norm(r))
+                    if v.x > 0:
+                        self.f = 2 * pi - self.f
+                else:
+                    self.f = acos(dot(n, r) / (norm(n) * norm(r)))
+                    if dot(n, v) > 0:
+                        self.f = 2 * pi - self.f
             else:
-                self.f = acos(dot(n, r) / (norm(n) * norm(r)))
-                if dot(n, v) > 0:
+                if ev.z < 0:
+                    self.arg_pe = 2 * pi - self.arg_pe
+                d = dot(ev, r) / (norm(ev) * norm(r))
+                if abs(d) - 1 < 1e-15:
+                    d = sign(d)
+                self.f = acos(d)
+                if dot(r, v) < 0:
                     self.f = 2 * pi - self.f
-        else:
-            if ev[2] < 0:
-                self.arg_pe = 2 * pi - self.arg_pe
-            d = dot(ev, r) / (norm(ev) * norm(r))
-            if abs(d) - 1 < 1e-15:
-                d = sign(d)
-            self.f = acos(d)
-            if dot(r, v) < 0:
-                self.f = 2 * pi - self.f
+        self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
 
     @property
     def M(self):
@@ -228,7 +238,7 @@ class KeplerianElements():
     @M.setter
     def M(self, value):
         warnings.warn('Setting anomaly does not set time, use KeplerianElements'
-                      '.propagate_anomaly_to() instead.', UserWarning)
+                      '.propagate_anomaly_to() instead.', OrbitalWarning)
         self._M = ou.mod(value, 2 * pi)
 
     @property
@@ -296,7 +306,7 @@ class KeplerianElements():
     @E.setter
     def E(self, value):
         warnings.warn('Setting anomaly does not set time, use KeplerianElements'
-                      '.propagate_anomaly_to() instead.', UserWarning)
+                      '.propagate_anomaly_to() instead.', OrbitalWarning)
         self._M = mean_anomaly_from_eccentric(self.e, value)
 
     @property
@@ -307,7 +317,7 @@ class KeplerianElements():
     @f.setter
     def f(self, value):
         warnings.warn('Setting anomaly does not set time, use KeplerianElements'
-                      '.propagate_anomaly_to() instead.', UserWarning)
+                      '.propagate_anomaly_to() instead.', OrbitalWarning)
         self._M = mean_anomaly_from_true(self.e, value)
 
     @property

@@ -3,59 +3,40 @@ from contextlib import contextmanager
 from math import atan2, floor, fmod, isinf, isnan
 
 import numpy as np
-from numpy import sin, cos, sqrt
+from numpy import cross, cos, dot, sin, sqrt
+from numpy.linalg import norm
 from scipy.constants import pi
 
 MAX_ITERATIONS = 100
 
 __all__ = [
     'altitude_from_radius',
+    'angular_momentum',
     'eccentric_anomaly_from_mean',
     'eccentric_anomaly_from_true',
+    'eccentricity_vector',
     'elements_for_apsides',
     'mean_anomaly_from_eccentric',
     'mean_anomaly_from_true',
+    'node_vector',
     'orbit_radius',
     'Position',
     'radius_from_altitude',
+    'specific_orbital_energy',
     'StateVector',
     'true_anomaly_from_eccentric',
     'true_anomaly_from_mean',
     'uvw_from_elements',
-    'Velocity'
+    'Velocity',
 ]
 
 
-def uvw_from_elements(i, raan, arg_pe, f):
-    u = arg_pe + f
+# Exceptions
 
-    sin_u = sin(u)
-    cos_u = cos(u)
-    sin_raan = sin(raan)
-    cos_raan = cos(raan)
-    sin_i = sin(i)
-    cos_i = cos(i)
+class ConvergenceError(Exception):
+    pass
 
-    U = np.array(
-        [cos_u * cos_raan - sin_u * sin_raan * cos_i,
-         cos_u * sin_raan + sin_u * cos_raan * cos_i,
-         sin_u * sin_i]
-    )
-
-    V = np.array(
-        [-sin_u * cos_raan - cos_u * sin_raan * cos_i,
-         -sin_u * sin_raan + cos_u * cos_raan * cos_i,
-         cos_u * sin_i]
-    )
-
-    W = np.array(
-        [sin_raan * sin_i,
-         -cos_raan * sin_i,
-         cos_i]
-    )
-
-    return U, V, W
-
+# Generators, context managers
 
 @contextmanager
 def saved_state(orbit):
@@ -65,17 +46,19 @@ def saved_state(orbit):
     orbit.__setstate__(state)
 
 
-def radius_from_altitude(altitude, body):
-    return altitude + body.mean_radius
+def lookahead(collection, fillvalue=None):
+    """Generates a series with lookahead to the next item."""
+    first = True
+    for next_item in collection:
+        if first:
+            first = False
+        else:
+            yield current_item, next_item
+        current_item = next_item
+    yield current_item, fillvalue
 
 
-def altitude_from_radius(radius, body):
-    return radius - body.mean_radius
-
-
-class ConvergenceError(Exception):
-    pass
-
+# Anomaly conversions
 
 def eccentric_anomaly_from_mean(e, M, tolerance=1e-14):
     """Convert mean anomaly to eccentric anomaly.
@@ -134,6 +117,8 @@ def true_anomaly_from_mean(e, M, tolerance=1e-14):
     return true_anomaly_from_eccentric(e, E)
 
 
+# Orbital element helper functions
+
 def orbit_radius(a, e, f):
     """Calculate scalar orbital radius."""
     return (a * (1 - e ** 2)) / (1 + e * cos(f))
@@ -148,6 +133,122 @@ def elements_for_apsides(apocenter_radius, pericenter_radius):
     e = (ra - rp) / (ra + rp)
     return a, e
 
+
+def uvw_from_elements(i, raan, arg_pe, f):
+    """Return U, V, W unit vectors.
+
+    :param float i: Inclination (:math:`i`) [rad]
+    :param float raan:  Right ascension of ascending node (:math:`\Omega`) [rad]
+    :param float arg_pe: Argument of periapsis (:math:`\omega`) [rad]
+    :param float f: True anomaly (:math:`f`) [rad]
+    :return: Radial direction unit vector (:math:`U`)
+    :return: Transversal (in-flight) direction unit vector (:math:`V`)
+    :return: Out-of-plane direction unit vector (:math:`W`)
+    :rtype: :py:class:`numpy.ndarray`
+    """
+    u = arg_pe + f
+
+    sin_u = sin(u)
+    cos_u = cos(u)
+    sin_raan = sin(raan)
+    cos_raan = cos(raan)
+    sin_i = sin(i)
+    cos_i = cos(i)
+
+    U = np.array(
+        [cos_u * cos_raan - sin_u * sin_raan * cos_i,
+         cos_u * sin_raan + sin_u * cos_raan * cos_i,
+         sin_u * sin_i]
+    )
+
+    V = np.array(
+        [-sin_u * cos_raan - cos_u * sin_raan * cos_i,
+         -sin_u * sin_raan + cos_u * cos_raan * cos_i,
+         cos_u * sin_i]
+    )
+
+    W = np.array(
+        [sin_raan * sin_i,
+         -cos_raan * sin_i,
+         cos_i]
+    )
+
+    return U, V, W
+
+
+def angular_momentum(position, velocity):
+    """Return angular momentum.
+
+    :param position: Position (r) [m]
+    :type position: :py:class:`~orbital.utilities.Position`
+    :param velocity: Velocity (v) [m/s]
+    :type velocity: :py:class:`~orbital.utilities.Velocity`
+    :return: Angular momentum (h) [N·m·s]
+    :rtype: :py:class:`~orbital.utilities.XyzVector`
+    """
+    return XyzVector.from_array(np.cross(position, velocity))
+
+
+def node_vector(angular_momentum):
+    """Return node vector.
+
+    :param angular_momentum: Angular momentum (h) [N·m·s]
+    :type angular_momentum: :py:class:`numpy.ndarray`
+    :return: Node vector (n) [N·m·s]
+    :rtype: :py:class:`~orbital.utilities.XyzVector`
+    """
+    return XyzVector.from_array(np.cross([0, 0, 1], angular_momentum))
+
+
+def eccentricity_vector(position, velocity, mu):
+    """Return eccentricity vector.
+
+    :param position: Position (r) [m]
+    :type position: :py:class:`~orbital.utilities.Position`
+    :param velocity: Velocity (v) [m/s]
+    :type velocity: :py:class:`~orbital.utilities.Velocity`
+    :param mu: Standard gravitational parameter (:math:`\mu`) [m\ :sup:`3`\ ·s\ :sup:`-2`]
+    :type mu: float
+    :return: Eccentricity vector (ev) [-]
+    :rtype: :py:class:`~orbital.utilities.XyzVector`
+    """
+
+    # This isn't required, but get base arrays so that return value isn't an
+    # instance of Position().
+    r = position.__array__()
+    v = velocity.__array__()
+    ev = 1 / mu * ((norm(v) ** 2 - mu / norm(r)) * r - dot(r, v) * v)
+    return XyzVector.from_array(ev)
+
+
+def specific_orbital_energy(position, velocity, mu):
+    """Return specific orbital energy.
+
+    :param position: Position (r) [m]
+    :type position: :py:class:`~orbital.utilities.Position`
+    :param velocity: Velocity (v) [m/s]
+    :type velocity: :py:class:`~orbital.utilities.Velocity`
+    :param mu: Standard gravitational parameter (:math:`\mu`) [m\ :sup:`3`\ ·s\ :sup:`-2`]
+    :type mu: float
+    :return: Specific orbital energy (E) [J/kg]
+    :rtype: float
+    """
+    r = position
+    v = velocity
+    return norm(v) ** 2 / 2 - mu / norm(r)
+
+
+# User helper functions
+
+def radius_from_altitude(altitude, body):
+    return altitude + body.mean_radius
+
+
+def altitude_from_radius(radius, body):
+    return radius - body.mean_radius
+
+
+# Math functions
 
 def mod(x, y):
     """Return the modulus after division of x by y.
@@ -179,56 +280,45 @@ def divmod(x, y):
     return (floor(x / y), mod(x, y))
 
 
+# Objects for package
+
 class XyzVector(np.ndarray):
     """Subclass of numpy's ndarray with x/y/z initialiser and property syntax."""
     def __new__(cls, x, y, z):
         # Create ndarray and cast to our class type
-        obj = np.asarray([x, y, z]).view(cls)
+        obj = np.asarray(np.hstack([x, y, z])).view(cls)
 
         # Finally, we must return the newly created object:
         return obj
 
+    @classmethod
+    def from_array(cls, array):
+        return cls(array[0], array[1], array[2])
+
+
     @property
     def x(self):
-        if len(self.shape) == 1:
-            return self[0]
-        else:
-            return self[:,0]
+        return self[0]
 
     @x.setter
     def x(self, value):
-        if len(self.shape) == 1:
-            self[0] = value
-        else:
-            self[:,0] = value
+        self[0] = value
 
     @property
     def y(self):
-        if len(self.shape) == 1:
-            return self[1]
-        else:
-            return self[:,1]
+        return self[1]
 
     @y.setter
     def y(self, value):
-        if len(self.shape) == 1:
-            self[1] = value
-        else:
-            self[:,1] = value
+        self[1] = value
 
     @property
     def z(self):
-        if len(self.shape) == 1:
-            return self[2]
-        else:
-            return self[:,2]
+        return self[2]
 
     @z.setter
     def z(self, value):
-        if len(self.shape) == 1:
-            self[2] = value
-        else:
-            self[:,2] = value
+        self[2] = value
 
     def __str__(self):
         """Override superclass __str__"""
@@ -248,83 +338,58 @@ class Velocity(XyzVector):
 
 StateVector = namedtuple('StateVector', ['position', 'velocity'])
 
+# Other
 
-class MeanAnomaly:
-    """Convenience class for representing an anomaly unambiguously.
-
-    After initialisation, the f, E, or M property can be accessed
-    for the anomaly value.
+class Anomaly:
+    """This package allows an anomaly to be represented and retrieved
+    unambiguously.
     """
-    def __init__(self, M, e=None):
-        self.M = M
-        self.e = e
+    def __init__(self, **kwargs):
+        super().__init__()
 
-    @property
-    def f(self):
-        return true_anomaly_from_mean(self.e, self.M)
+        # The defaults
+        valid_args = set(['M', 'E', 'f'])
 
-    @f.setter
-    def f(self, value):
-        self.M = mean_anomaly_from_true(self.e, value)
+        extra_args = set(kwargs.keys()) - valid_args
 
-    @property
-    def E(self):
-        return eccentric_anomaly_from_mean(self.e, self.M)
+        # Check for invalid keywords
+        if extra_args:
+            raise TypeError('Invalid kwargs: ' + ', '.join(list(extra_args)))
 
-    @E.setter
-    def E(self, value):
-        self.M = mean_anomaly_from_eccentric(self.e, value)
+        # Ensure a valid keyword was passed
+        if not kwargs:
+            raise TypeError('Required argument missing.')
 
+        # Ensure only one keyword was passed, but allow other 2 anomaly
+        # parameters to be None.
+        if sum(1 for x in kwargs.values() if x is not None) > 1:
+            raise ValueError('Only one anomaly parameter can be set.')
 
-class TrueAnomaly:
-    """Convenience class for representing an anomaly unambiguously.
+        # Now remove the superfluous None values.
+        kwargs = {key: value for key, value in kwargs.items() if value is not None}
 
-    After initialisation, the f, E, or M property can be accessed
-    for the anomaly value.
-    """
-    def __init__(self, f, e=None):
-        self.f = f
-        self.e = e
+        self.key, self.anomaly = kwargs.popitem()
 
-    @property
-    def M(self):
-        return mean_anomaly_from_true(self.e, self.f)
+    def M(self, e):
+        if self.key == 'M':
+            return self.anomaly
+        elif self.key == 'E':
+            return mean_anomaly_from_eccentric(e, self.anomaly)
+        elif self.key == 'f':
+            return true_anomaly_from_eccentric(e, self.anomaly)
 
-    @M.setter
-    def M(self, value):
-        self.f = true_anomaly_from_mean(self.e, value)
+    def E(self, e):
+        if self.key == 'M':
+            return eccentric_anomaly_from_mean(e, self.anomaly)
+        elif self.key == 'E':
+            return self.anomaly
+        elif self.key == 'f':
+            return eccentric_anomaly_from_true(e, self.anomaly)
 
-    @property
-    def E(self):
-        return eccentric_anomaly_from_true(self.e, self.f)
-
-    @E.setter
-    def E(self, value):
-        self.f = true_anomaly_from_eccentric(self.e, value)
-
-
-class EccentricAnomaly:
-    """Convenience class for representing an anomaly unambiguously.
-
-    After initialisation, the f, E, or M property can be accessed
-    for the anomaly value.
-    """
-    def __init__(self, E, e=None):
-        self.E = E
-        self.e = e
-
-    @property
-    def M(self):
-        return mean_anomaly_from_eccentric(self.e, self.E)
-
-    @M.setter
-    def M(self, value):
-        self.E = eccentric_anomaly_from_mean(self.e, value)
-
-    @property
-    def f(self):
-        return true_anomaly_from_eccentric(self.e, self.E)
-
-    @f.setter
-    def E(self, value):
-        self.E = eccentric_anomaly_from_true(self.e, value)
+    def f(self, e):
+        if self.key == 'M':
+            return true_anomaly_from_mean(e, self.anomaly)
+        elif self.key == 'E':
+            return true_anomaly_from_eccentric(e, self.anomaly)
+        elif self.key == 'f':
+            return self.anomaly

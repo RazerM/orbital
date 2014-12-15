@@ -13,7 +13,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-from orbital.utilities import uvw_from_elements, orbit_radius, saved_state
+from orbital.maneuver import TimeOperation
+from orbital.utilities import (lookahead, orbit_radius, saved_state,
+                               uvw_from_elements)
 
 
 def plot2d(orbit, title='', maneuver=None, animate=False, speedup=5000):
@@ -34,7 +36,6 @@ def plot3d(orbit, title='', maneuver=None, animate=False, speedup=5000):
         plotter.plot(orbit, title=title, maneuver=maneuver)
 
 
-# Alias plot2d as plot
 plot = plot2d
 
 
@@ -67,10 +68,14 @@ class Plotter2D():
             self._plot_orbit(orbit, label='Initial orbit')
             self.propagate_counter = 1
 
+            states = lookahead(
+                orbit.apply_maneuver(maneuver, iter=True, copy=True),
+                fillvalue=(None, None))
+
             with saved_state(orbit):
-                for orbit, operation in orbit.apply_maneuver(maneuver, iter=True):
+                for (orbit, operation), (_, next_operation) in states:
                     with saved_state(orbit):
-                        operation.plot(orbit, self)
+                        operation.plot(orbit, self, next_operation)
             self.axes.legend()
         self.axes.set_title(title)
 
@@ -182,10 +187,14 @@ class Plotter3D():
             self._plot_orbit(orbit, label='Initial orbit')
             self.propagate_counter = 1
 
+            states = lookahead(
+                orbit.apply_maneuver(maneuver, iter=True, copy=True),
+                fillvalue=(None, None))
+
             with saved_state(orbit):
-                for orbit, operation in orbit.apply_maneuver(maneuver, iter=True):
+                for (orbit, operation), (_, next_operation) in states:
                     with saved_state(orbit):
-                        operation.plot(orbit, self)
+                        operation.plot(orbit, self, next_operation)
             self.axes.legend()
         self.axes.set_title(title)
 
