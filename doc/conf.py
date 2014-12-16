@@ -288,4 +288,5 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 # intersphinx
-intersphinx_mapping = {'python': ('http://docs.python.org/3.2', None)}
+intersphinx_mapping = {'python': ('http://docs.python.org/3.2', None),
+                       'astropy': ('https://astropy.readthedocs.org/en/stable/', None)}

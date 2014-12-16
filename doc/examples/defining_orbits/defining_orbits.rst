@@ -14,6 +14,8 @@ Defining Orbits
     from orbital import KeplerianElements
     from orbital.bodies import earth
     from orbital.plotting import plot
+Here, several convenience methods for defining orbits are shown.
+
 .. code:: python
 
     # Create circular orbit with 90 minute period
