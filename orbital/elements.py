@@ -22,24 +22,16 @@ class KeplerianElements():
 
     """Defines an orbit using keplerian elements.
 
-    Keplerian Elements:
-    a         -- Semimajor axis                        [m]
-    e         -- Eccentricity                          [-]
-    i         -- Inclination                           [rad]
-    raan      -- Right ascension of the ascending node [rad]
-    arg_pe    -- Argument of periapsis                 [rad]
-    M0        -- Mean anomaly at ref_epoch             [rad]
-
-    Reference frame:
-    body      -- Instance of orbital.bodies.Body
-    ref_epoch -- astropy.time.Time
-
-    Time-dependent properties:
-    t     -- Time since ref_epoch (s)
-    epoch -- astropy.time.Time of time since ref_epoch
-    M     -- Mean anomaly at time t
-    f     -- True anomaly at time t
-    E     -- Eccentric anomaly at time t
+    :param a: Semimajor axis [m]
+    :param e: Eccentricity [-]
+    :param i: Inclination [rad]
+    :param raan: Right ascension of ascending node (:math:`\Omega`) [rad]
+    :param arg_pe: Argument of periapsis (:math:`\omega`) [rad]
+    :param M0: Mean anomaly at `ref_epoch` (:math:`M_{0}`) [rad]
+    :param body: Orbited body, e.g. earth
+    :type body: :py:class:`orbital.bodies.Body`
+    :param ref_epoch: Reference epoch
+    :type ref_epoch: :py:class:`astropy.time.Time`
     """
 
     def __init__(self, a=None, e=0, i=0, raan=0, arg_pe=0, M0=0,
@@ -117,40 +109,67 @@ class KeplerianElements():
         return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
                    ref_epoch=ref_epoch)
 
-    def propagate_anomaly_to(self, **kwargs):
-        """Propagate to time in future where anomaly is equal to value passed in.
+    @property
+    def epoch(self):
+        """Current epoch calculated from time since ref_epoch."""
+        return self.ref_epoch + time.TimeDelta(self.t, format='sec')
 
-        This will propagate to a maximum of 1 orbit ahead.
+    @epoch.setter
+    def epoch(self, value):
+        """Set epoch, adjusting current mean anomaly (from which
+        other anomalies are calculated).
         """
-        operation = orbital.maneuver.PropagateAnomalyTo(**kwargs)
-        self.apply_maneuver(operation)
+        t = (value - self.ref_epoch).sec
+        self._M = self.M0 + self.n * t
+        self._M = ou.mod(self._M, 2 * pi)
+        self._t = t
 
-    def propagate_anomaly_by(self, **kwargs):
-        operation = orbital.maneuver.PropagateAnomalyBy(**kwargs)
-        self.apply_maneuver(operation)
+    @property
+    def t(self):
+        """Time since ref_epoch."""
+        return self._t
 
-    def __getattr__(self, attr):
-        """Dynamically respond to correct apsis names for given body."""
-        for apoapsis_name in self.body.apoapsis_names:
-            if attr == '{}_radius'.format(apoapsis_name):
-                return self.apocenter_radius
-        for periapsis_name in self.body.periapsis_names:
-            if attr == '{}_radius'.format(periapsis_name):
-                return self.pericenter_radius
-        raise AttributeError(
-            "'{name}' object has no attribute '{attr}'"
-            .format(name=type(self).__name__, attr=attr))
+    @t.setter
+    def t(self, value):
+        """Set time since ref_epoch, adjusting current mean anomaly (from which
+        other anomalies are calculated).
+        """
+        self._M = self.M0 + self.n * value
+        self._M = ou.mod(self._M, 2 * pi)
+        self._t = value
 
-    def apply_maneuver(self, maneuver, iter=False, copy=False):
-        if isinstance(maneuver, orbital.maneuver.Operation):
-            maneuver = orbital.maneuver.Maneuver(maneuver)
+    @property
+    def M(self):
+        """Mean anomaly [rad]."""
+        return self._M
 
-        if iter:
-            return maneuver.__iapply__(self, copy)
-        else:
-            if copy:
-                raise ValueError('copy can only be True if iter=True')
-            maneuver.__apply__(self)
+    @M.setter
+    def M(self, value):
+        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
+                      '.propagate_anomaly_to() instead.', OrbitalWarning)
+        self._M = ou.mod(value, 2 * pi)
+
+    @property
+    def E(self):
+        """Eccentric anomaly [rad]."""
+        return eccentric_anomaly_from_mean(self.e, self._M)
+
+    @E.setter
+    def E(self, value):
+        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
+                      '.propagate_anomaly_to() instead.', OrbitalWarning)
+        self._M = mean_anomaly_from_eccentric(self.e, value)
+
+    @property
+    def f(self):
+        """True anomaly [rad]."""
+        return true_anomaly_from_mean(self.e, self._M)
+
+    @f.setter
+    def f(self, value):
+        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
+                      '.propagate_anomaly_to() instead.', OrbitalWarning)
+        self._M = mean_anomaly_from_true(self.e, value)
 
     @property
     def a(self):
@@ -169,13 +188,13 @@ class KeplerianElements():
 
     @property
     def r(self):
-        """Position vector [x, y, z] [m]."""
+        """Position vector (:py:class:`orbital.utilities.Position`) [m]."""
         pos = orbit_radius(self.a, self.e, self.f) * self.U
         return Position(x=pos[0], y=pos[1], z=pos[2])
 
     @property
     def v(self):
-        """Velocity vector [x, y, z] [m/s]."""
+        """Velocity vector (:py:class:`orbital.utilities.Velocity`) [m/s]."""
         r_dot = sqrt(self.body.mu / self.a) * (self.e * sin(self.f)) / sqrt(1 - self.e ** 2)
         rf_dot = sqrt(self.body.mu / self.a) * (1 + self.e * cos(self.f)) / sqrt(1 - self.e ** 2)
         vel = r_dot * self.U + rf_dot * self.V
@@ -200,7 +219,7 @@ class KeplerianElements():
         if self.i == 0:
             self.raan = 0
             if self.e == 0:
-                self.arg_pe = 0
+                self.arg_pe = 0  # By convention
             else:
                 self.arg_pe = acos(ev.x / norm(ev))
         else:
@@ -232,47 +251,8 @@ class KeplerianElements():
         self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
 
     @property
-    def M(self):
-        return self._M
-
-    @M.setter
-    def M(self, value):
-        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
-                      '.propagate_anomaly_to() instead.', OrbitalWarning)
-        self._M = ou.mod(value, 2 * pi)
-
-    @property
-    def epoch(self):
-        """Current epoch."""
-        return self.ref_epoch + time.TimeDelta(self.t, format='sec')
-
-    @epoch.setter
-    def epoch(self, value):
-        """Set epoch, adjusting current mean anomaly (from which
-        other anomalies are calculated).
-        """
-        t = (value - self.ref_epoch).sec
-        self._M = self.M0 + self.n * t
-        self._M = ou.mod(self._M, 2 * pi)
-        self._t = t
-
-    @property
-    def t(self):
-        """Time since ref_epoch."""
-        return self._t
-
-    @t.setter
-    def t(self, value):
-        """Set time since ref_epoch, adjusting current mean anomaly (from which
-        other anomalies are calculated).
-        """
-        self._M = self.M0 + self.n * value
-        self._M = ou.mod(self._M, 2 * pi)
-        self._t = value
-
-    @property
     def n(self):
-        """Mean motion."""
+        """Mean motion [rad/s]."""
         return sqrt(self.body.mu / self.a ** 3)
 
     @n.setter
@@ -290,6 +270,81 @@ class KeplerianElements():
         """Set period by adjusting semimajor axis."""
         self.a = (self.body.mu * value ** 2 / (4 * pi ** 2)) ** (1 / 3)
 
+    def propagate_anomaly_to(self, **kwargs):
+        """Propagate to time in future where anomaly is equal to value passed in.
+
+        :param M: Mean anomaly [rad]
+        :param E: Eccentricity anomaly [rad]
+        :param f: True anomaly [rad]
+
+        This will propagate to a maximum of 1 orbit ahead.
+
+        .. note::
+
+           Only one parameter should be passed in.
+        """
+        operation = orbital.maneuver.PropagateAnomalyTo(**kwargs)
+        self.apply_maneuver(operation)
+
+    def propagate_anomaly_by(self, **kwargs):
+        """Propagate to time in future by an amount equal to the anomaly passed in.
+
+        :param M: Mean anomaly [rad]
+        :param E: Eccentricity anomaly [rad]
+        :param f: True anomaly [rad]
+
+        .. note::
+
+           Only one parameter should be passed in.
+        """
+        operation = orbital.maneuver.PropagateAnomalyBy(**kwargs)
+        self.apply_maneuver(operation)
+
+    def __getattr__(self, attr):
+        """Dynamically respond to correct apsis names for given body."""
+        for apoapsis_name in self.body.apoapsis_names:
+            if attr == '{}_radius'.format(apoapsis_name):
+                return self.apocenter_radius
+        for periapsis_name in self.body.periapsis_names:
+            if attr == '{}_radius'.format(periapsis_name):
+                return self.pericenter_radius
+        raise AttributeError(
+            "'{name}' object has no attribute '{attr}'"
+            .format(name=type(self).__name__, attr=attr))
+
+    def apply_maneuver(self, maneuver, iter=False, copy=False):
+        """ Apply maneuver to orbit.
+
+        :param maneuver: Maneuver
+        :type maneuver: :py:class:`orbital.maneuver.Maneuver`
+        :param bool iter: Return an iterator.
+        :param bool copy: Each orbit yielded by the generator will be a copy.
+
+        If :code:`iter=True`, the returned iterator is of each intermediate orbit
+        and the next operation, as shown in this table:
+
+        +-------------------------------------+------------------+
+        |                Orbit                |    Operation     |
+        +=====================================+==================+
+        | Original orbit                      | First operation  |
+        +-------------------------------------+------------------+
+        | Orbit after first operation applied | Second operation |
+        +-------------------------------------+------------------+
+
+        The final orbit is not returned, as it is accessible after the method has completed.
+
+        If each orbit returned must not be altered, use :code:`copy=True`
+        """
+        if isinstance(maneuver, orbital.maneuver.Operation):
+            maneuver = orbital.maneuver.Maneuver(maneuver)
+
+        if iter:
+            return maneuver.__iapply__(self, copy)
+        else:
+            if copy:
+                raise ValueError('copy can only be True if iter=True')
+            maneuver.__apply__(self)
+
     @property
     def apocenter_radius(self):
         return (1 + self.e) * self.a
@@ -297,28 +352,6 @@ class KeplerianElements():
     @property
     def pericenter_radius(self):
         return (1 - self.e) * self.a
-
-    @property
-    def E(self):
-        """Eccentric anomaly [rad]."""
-        return eccentric_anomaly_from_mean(self.e, self._M)
-
-    @E.setter
-    def E(self, value):
-        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
-                      '.propagate_anomaly_to() instead.', OrbitalWarning)
-        self._M = mean_anomaly_from_eccentric(self.e, value)
-
-    @property
-    def f(self):
-        """True anomaly [rad]."""
-        return true_anomaly_from_mean(self.e, self._M)
-
-    @f.setter
-    def f(self, value):
-        warnings.warn('Setting anomaly does not set time, use KeplerianElements'
-                      '.propagate_anomaly_to() instead.', OrbitalWarning)
-        self._M = mean_anomaly_from_true(self.e, value)
 
     @property
     def U(self):
