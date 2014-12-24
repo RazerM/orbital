@@ -143,7 +143,7 @@ class Plotter2D():
             self.propagate_counter += 1
 
         pos_dot, = self.axes.plot(
-            pos[0], pos[1], 'o', markeredgewidth=0, label=label)
+            pos[0], pos[1], 'o', label=label)
 
         return pos_dot
 
@@ -273,7 +273,7 @@ class Plotter3D():
             self.propagate_counter += 1
 
         pos_dot, = self.axes.plot(
-            [x], [y], [z], 'o', markeredgewidth=0, label=label)
+            [x], [y], [z], 'o', label=label)
 
         return pos_dot
 
