@@ -1,6 +1,6 @@
-import os
-import subprocess
+from subprocess import call
 from pathlib import Path
+import os
 
 from shovel import task
 
@@ -12,7 +12,7 @@ def watch():
 
     gen()
     try:
-        subprocess.call(['watchmedo', 'shell-command', '--patterns=*.rst;*.py', '--ignore-pattern=_build/*', '--recursive', '--command=make -C doc/ html'])
+        call(['watchmedo', 'shell-command', '--patterns=*.rst;*.py', '--ignore-pattern=_build/*', '--recursive', '--command=make -C doc/ html'])
     except FileNotFoundError:
         print('watchdog is required (pip install watchdog)')
 
@@ -21,17 +21,17 @@ def watch():
 def upload():
     """Generate, then upload to PyPI."""
     gen()
-    subprocess.call(['python', 'setup.py', 'upload_docs', '--upload-dir=doc/_build/dirhtml'])
+    call(['python', 'setup.py', 'upload_docs', '--upload-dir=doc/_build/dirhtml'])
 
 
 @task
 def gen():
     """Generate html and dirhtml output."""
-    subprocess.call(['make', '-C', 'doc/', 'dirhtml'])
-    subprocess.call(['make', '-C', 'doc/', 'html'])
+    call(['make', '-C', 'doc/', 'dirhtml'])
+    call(['make', '-C', 'doc/', 'html'])
 
 
 @task
 def clean():
     """Clean build directory."""
-    subprocess.call(['make', '-C', 'doc/', 'clean'])
+    call(['make', '-C', 'doc/', 'clean'])
