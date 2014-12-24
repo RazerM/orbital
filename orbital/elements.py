@@ -28,7 +28,7 @@ class KeplerianElements():
     :param raan: Right ascension of ascending node (:math:`\Omega`) [rad]
     :param arg_pe: Argument of periapsis (:math:`\omega`) [rad]
     :param M0: Mean anomaly at `ref_epoch` (:math:`M_{0}`) [rad]
-    :param body: Orbited body, e.g. earth
+    :param body: Reference body, e.g. earth
     :type body: :py:class:`orbital.bodies.Body`
     :param ref_epoch: Reference epoch
     :type ref_epoch: :py:class:`astropy.time.Time`
