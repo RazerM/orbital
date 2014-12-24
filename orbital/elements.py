@@ -429,8 +429,8 @@ class KeplerianElements():
                 '\tArgument of perigee (arg_pe)                 = {arg_pe!r} deg,\n'
                 '\tMean anomaly at ref_epoch (M0)               = {M0!r} deg,\n'
                 '\tState:\n'
-                '\t\tMean anomaly (M)                         = {M!r} deg,\n'
-                '\t\tTime (t)                                 = {t!r} s'
+                '\t\tMean anomaly (M)                           = {M!r} deg,\n'
+                '\t\tTime (t)                                   = {t!r} s'
                 ).format(
                     name=self.__class__.__name__,
                     a=degrees(self.a),

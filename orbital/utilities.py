@@ -207,8 +207,7 @@ def eccentricity_vector(position, velocity, mu):
     :type position: :py:class:`~orbital.utilities.Position`
     :param velocity: Velocity (v) [m/s]
     :type velocity: :py:class:`~orbital.utilities.Velocity`
-    :param mu: Standard gravitational parameter (:math:`\mu`) [m\ :sup:`3`\ ·s\ :sup:`-2`]
-    :type mu: float
+    :param float mu: Standard gravitational parameter (:math:`\mu`) [m\ :sup:`3`\ ·s\ :sup:`-2`]
     :return: Eccentricity vector (ev) [-]
     :rtype: :py:class:`~orbital.utilities.XyzVector`
     """

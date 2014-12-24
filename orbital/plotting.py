@@ -22,7 +22,7 @@ def plot2d(orbit, title='', maneuver=None, animate=False, speedup=5000):
     """Convenience function to 2D plot orbit in a new figure."""
     plotter = Plotter2D()
     if animate:
-        plotter.animate(orbit, title=title, speedup=speedup)
+        return plotter.animate(orbit, title=title, speedup=speedup)
     else:
         plotter.plot(orbit, title=title, maneuver=maneuver)
 
@@ -31,7 +31,7 @@ def plot3d(orbit, title='', maneuver=None, animate=False, speedup=5000):
     """Convenience function to 3D plot orbit in a new figure."""
     plotter = Plotter3D()
     if animate:
-        plotter.animate(orbit, title=title, speedup=speedup)
+        return plotter.animate(orbit, title=title, speedup=speedup)
     else:
         plotter.plot(orbit, title=title, maneuver=maneuver)
 
@@ -108,6 +108,8 @@ class Plotter2D():
         # blit=True causes an error on OS X, disable for now.
         ani = animation.FuncAnimation(
             self.fig, animate, len(times), interval=interval, blit=False)
+
+        return ani
 
     @staticmethod
     def _perifocal_coords(orbit, f):
@@ -233,6 +235,8 @@ class Plotter3D():
         ani = animation.FuncAnimation(
             self.fig, animate, len(times), interval=interval, blit=False)
 
+        return ani
+
     @staticmethod
     def _xyz_coords(orbit, f):
         U, _, _ = uvw_from_elements(orbit.i, orbit.raan, orbit.arg_pe, f)
@@ -313,5 +317,4 @@ class Plotter3D():
               0.5 * (z.max() + z.min()))
 
         for xb, yb, zb in zip(Xb, Yb, Zb):
-            print(xb, yb, zb)
             self.axes.plot([xb], [yb], [zb], 'w')

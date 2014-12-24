@@ -17,6 +17,8 @@ __all__ = [
     'ChangePericenterBy',
     'Circularise',
     'Maneuver',
+    'PropagateAnomalyBy',
+    'PropagateAnomalyTo',
     'SetApocenterAltitudeTo',
     'SetApocenterRadiusTo',
     'SetInclinationTo',
@@ -88,6 +90,9 @@ class TimeOperation(Operation):
 
 
 class SetApocenterRadiusTo(ImpulseOperation):
+    """Operation for setting apocenter radius. At time of application, orbit
+    position must be at pericenter.
+    """
     def __init__(self, apocenter_radius):
         super().__init__()
         self.apocenter_radius = apocenter_radius
@@ -140,6 +145,9 @@ class SetApocenterRadiusTo(ImpulseOperation):
 
 
 class SetApocenterAltitudeTo(ImpulseOperation):
+    """Operation for setting apocenter altitude. At time of application, orbit
+    position must be at pericenter.
+    """
     def __init__(self, apocenter_altitude):
         super().__init__()
         self.apocenter_altitude = apocenter_altitude
@@ -195,6 +203,9 @@ class SetApocenterAltitudeTo(ImpulseOperation):
 
 
 class ChangeApocenterBy(ImpulseOperation):
+    """Operation for changing apocenter radius. At time of application, orbit
+    position must be at pericenter.
+    """
     def __init__(self, delta):
         super().__init__()
         self.delta = delta
@@ -247,6 +258,9 @@ class ChangeApocenterBy(ImpulseOperation):
 
 
 class SetPericenterRadiusTo(ImpulseOperation):
+    """Operation for setting pericenter radius. At time of application, orbit
+    position must be at apocenter.
+    """
     def __init__(self, pericenter_radius):
         super().__init__()
         self.pericenter_radius = pericenter_radius
@@ -299,6 +313,9 @@ class SetPericenterRadiusTo(ImpulseOperation):
 
 
 class SetPericenterAltitudeTo(ImpulseOperation):
+    """Operation for setting pericenter altitude. At time of application, orbit
+    position must be at apocenter.
+    """
     def __init__(self, pericenter_altitude):
         super().__init__()
         self.pericenter_altitude = pericenter_altitude
@@ -354,6 +371,9 @@ class SetPericenterAltitudeTo(ImpulseOperation):
 
 
 class ChangePericenterBy(ImpulseOperation):
+    """Operation for changing pericenter. At time of application, orbit
+    position must be at apocenter.
+    """
     def __init__(self, delta):
         super().__init__()
         self.delta = delta
@@ -406,6 +426,9 @@ class ChangePericenterBy(ImpulseOperation):
 
 
 class SetInclinationTo(ImpulseOperation):
+    """Operation for setting inclination. At time of application, orbit
+    position must be at the ascending or descending node.
+    """
     def __init__(self, inclination):
         super().__init__()
         self.inclination = inclination
@@ -432,6 +455,9 @@ class SetInclinationTo(ImpulseOperation):
 
 
 class ChangeInclinationBy(ImpulseOperation):
+    """Operation for changing inclination. At time of application, orbit
+    position must be at the ascending or descending node.
+    """
     def __init__(self, delta):
         super().__init__()
         self.delta = delta
@@ -579,7 +605,7 @@ class PropagateAnomalyBy(TimeOperation):
 
 
 class Circularise(ImpulseOperation):
-    """Circularise an orbit."""
+    """Operation for circularising an orbit."""
     def __init__(self, raise_pericenter=True):
         """Assumptions: anomaly is at the correct apside."""
         super().__init__()
@@ -627,8 +653,8 @@ class Circularise(ImpulseOperation):
 
 
 class SetPericenterHere(Operation):
-    """For a circular orbit, set the pericenter position (in preparation for
-        a maneuver to an elliptical orbit.
+    """Operation for setting pericenter to current location (in preparation
+    for a maneuver to an elliptical orbit. Initial orbit must be circular.
     """
     def __init__(self):
         super().__init__()
@@ -649,6 +675,10 @@ class SetPericenterHere(Operation):
 
 
 class Maneuver:
+    """A Maneuver is a collection of operations, and class methods are provided
+    to easily create maneuvers which ensure orbits are propagated to the
+    correct position between impulse operations.
+    """
     def __init__(self, operations):
         if not isinstance(operations, list):
             operations = [operations]
@@ -657,6 +687,7 @@ class Maneuver:
 
     @classmethod
     def set_apocenter_radius_to(cls, apocenter_radius):
+        """Maneuver for setting apocenter radius."""
         operations = [
             PropagateAnomalyTo(M=0),
             SetApocenterRadiusTo(apocenter_radius)]
@@ -664,6 +695,7 @@ class Maneuver:
 
     @classmethod
     def set_pericenter_radius_to(cls, pericenter_radius):
+        """Maneuver for setting pericenter radius."""
         operations = [
             PropagateAnomalyTo(M=pi),
             SetPericenterRadiusTo(pericenter_radius)]
@@ -671,6 +703,7 @@ class Maneuver:
 
     @classmethod
     def set_apocenter_altitude_to(cls, apocenter_altitude):
+        """Maneuver for setting apocenter altitude."""
         operations = [
             PropagateAnomalyTo(M=0),
             SetApocenterAltitudeTo(apocenter_altitude)]
@@ -678,6 +711,7 @@ class Maneuver:
 
     @classmethod
     def set_pericenter_altitude_to(cls, pericenter_altitude):
+        """Maneuver for setting pericenter altitude."""
         operations = [
             PropagateAnomalyTo(M=pi),
             SetPericenterAltitudeTo(pericenter_altitude)]
@@ -685,6 +719,7 @@ class Maneuver:
 
     @classmethod
     def change_apocenter_by(cls, delta):
+        """Maneuver for changing apocenter."""
         operations = [
             PropagateAnomalyTo(M=0),
             ChangeApocenterBy(delta)]
@@ -692,6 +727,7 @@ class Maneuver:
 
     @classmethod
     def change_pericenter_by(cls, delta):
+        """Maneuver for changing pericenter."""
         operations = [
             PropagateAnomalyTo(M=pi),
             ChangePericenterBy(delta)]
@@ -699,6 +735,11 @@ class Maneuver:
 
     @classmethod
     def hohmann_transfer_to_radius(cls, radius):
+        """Maneuver for a hohmann transfer to given radius.
+
+        Initial orbit must be circular. Will raise apocenter from position
+        at time of application.
+        """
         operations = [
             SetPericenterHere(),
             SetApocenterRadiusTo(radius),
@@ -708,6 +749,11 @@ class Maneuver:
 
     @classmethod
     def hohmann_transfer_to_altitude(cls, altitude):
+        """Maneuver for a hohmann transfer to given altitude.
+
+        Initial orbit must be circular. Will raise apocenter from position
+        at time of application.
+        """
         operations = [
             SetPericenterHere(),
             SetApocenterAltitudeTo(altitude),
@@ -717,6 +763,7 @@ class Maneuver:
 
     @classmethod
     def set_inclination_to(cls, inclination):
+        """Maneuver for setting inclination."""
         operations = [
             lambda orbit: PropagateAnomalyTo(f=2 * pi - orbit.arg_pe),
             SetInclinationTo(inclination)]
@@ -724,6 +771,7 @@ class Maneuver:
 
     @classmethod
     def change_inclination_by(cls, delta):
+        """Maneuver for changing inclination."""
         operations = [
             lambda orbit: PropagateAnomalyTo(f=2 * pi - orbit.arg_pe),
             ChangeInclinationBy(delta)]
