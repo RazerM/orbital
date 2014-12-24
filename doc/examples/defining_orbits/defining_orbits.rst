@@ -5,9 +5,6 @@ Defining Orbits
 
 .. code:: python
 
-    %matplotlib inline
-.. code:: python
-
     from numpy import radians
     from scipy.constants import kilo
     

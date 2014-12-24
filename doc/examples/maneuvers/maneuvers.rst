@@ -7,9 +7,6 @@ the position dots on the plots.
 
 .. code:: python
 
-    %matplotlib inline
-.. code:: python
-
     from scipy.constants import kilo
     
     from orbital import KeplerianElements
