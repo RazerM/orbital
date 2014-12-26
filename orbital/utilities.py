@@ -240,12 +240,18 @@ def specific_orbital_energy(position, velocity, mu):
 # User helper functions
 
 def radius_from_altitude(altitude, body):
+    """Return radius for a given altitude."""
     return altitude + body.mean_radius
 
 
 def altitude_from_radius(radius, body):
+    """Return altitude for a given radius."""
     return radius - body.mean_radius
 
+
+def impulse_from_finite(acceleration, duration):
+    """Return impulsive velocity delta for constant thrust finite burn."""
+    return acceleration * duration
 
 # Math functions
 
