@@ -2,7 +2,7 @@
 Installation
 ************
 
-The odmpy package can be installed on any system running **Python 3**.
+The Orbital package can be installed on any system running **Python 3**.
 
 The recommended installation method is using ``pip``.
 
@@ -25,7 +25,7 @@ Check out a `release tag <https://github.com/RazerM/orbital/releases>`_:
 
 .. parsed-literal::
 
-	$ cd odmpy
+	$ cd orbital
 	$ git checkout |version|
 
 Test and install:
