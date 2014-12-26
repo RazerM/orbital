@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 from astropy import time
-from numpy import cos, cross, dot, sign, sin, sqrt, degrees
+from numpy import arctan, cos, cross, dot, sign, sin, sqrt, degrees
 from numpy import arccos as acos
 from numpy.linalg import norm
 from scipy.constants import pi
@@ -270,6 +270,10 @@ class KeplerianElements():
         """Set period by adjusting semimajor axis."""
         self.a = (self.body.mu * value ** 2 / (4 * pi ** 2)) ** (1 / 3)
 
+    @property
+    def fpa(self):
+        return arctan(self.e * sin(self.f) / (1 + self.e * cos(self.f)))
+
     def propagate_anomaly_to(self, **kwargs):
         """Propagate to time in future where anomaly is equal to value passed in.
 
@@ -433,7 +437,7 @@ class KeplerianElements():
                 '\t\tTime (t)                                   = {t!r} s'
                 ).format(
                     name=self.__class__.__name__,
-                    a=degrees(self.a),
+                    a=self.a,
                     e=self.e,
                     i=degrees(self.i),
                     raan=degrees(self.raan),
