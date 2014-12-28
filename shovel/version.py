@@ -45,6 +45,7 @@ def bump(dev=False, patch=False, minor=False, major=False, nocommit=False):
                 else:
                     if vdict['dev']:
                         vdict['dev'] = None
+                        increment_release = False
 
                 if increment_release:
                     rel = vdict['release']
