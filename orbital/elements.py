@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 from astropy import time
-from numpy import arctan, cos, cross, dot, sign, sin, sqrt, degrees
+from numpy import arctan, cos, dot, sin, sqrt, degrees
 from numpy import arccos as acos
 from numpy.linalg import norm
 from scipy.constants import pi
@@ -14,6 +14,7 @@ from orbital.utilities import *
 
 class OrbitalWarning(Warning):
     pass
+
 
 J2000 = time.Time('J2000', scale='utc')
 
@@ -202,6 +203,11 @@ class KeplerianElements():
 
     @v.setter
     def v(self, value):
+        """Set velocity by altering orbital elements.
+
+        This method uses 3 position variables, and 3 velocity
+        variables to set the 6 orbital elements.
+        """
         r = self.r
         v = value
         h = angular_momentum(r, v)
@@ -214,41 +220,73 @@ class KeplerianElements():
 
         self.a = -mu / (2 * E)
         self.e = norm(ev)
+
+        SMALL_NUMBER = 1e-15
+
+        # Inclination is the angle between the angular
+        # momentum vector and its z component.
         self.i = acos(h.z / norm(h))
 
-        if self.i == 0:
+        if abs(self.i - 0) < SMALL_NUMBER:
+            # For non-inclined orbits, raan is undefined;
+            # set to zero by convention
             self.raan = 0
-            if self.e == 0:
-                self.arg_pe = 0  # By convention
+            if abs(self.e - 0) < SMALL_NUMBER:
+                # For circular orbits, place periapsis
+                # at ascending node by convention
+                self.arg_pe = 0
             else:
+                # Argument of periapsis is the angle between
+                # eccentricity vector and its x component.
                 self.arg_pe = acos(ev.x / norm(ev))
         else:
-            self.raan = acos(ev.x / norm(n))
+            # Right ascension of ascending node is the angle
+            # between the node vector and its x component.
+            self.raan = acos(n.x / norm(n))
             if n.y < 0:
                 self.raan = 2 * pi - self.raan
+
+            # Argument of periapsis is angle between
+            # node and eccentricity vectors.
             self.arg_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            if self.e == 0:
-                if self.i == 0:
+            if abs(self.e - 0) < SMALL_NUMBER:
+                if abs(self.i - 0) < SMALL_NUMBER:
+                    # True anomaly is angle between position
+                    # vector and its x component.
                     self.f = acos(r.x / norm(r))
                     if v.x > 0:
                         self.f = 2 * pi - self.f
                 else:
+                    # True anomaly is angle between node
+                    # vector and position vector.
                     self.f = acos(dot(n, r) / (norm(n) * norm(r)))
                     if dot(n, v) > 0:
                         self.f = 2 * pi - self.f
             else:
                 if ev.z < 0:
                     self.arg_pe = 2 * pi - self.arg_pe
-                d = dot(ev, r) / (norm(ev) * norm(r))
-                if abs(d) - 1 < 1e-15:
-                    d = sign(d)
-                self.f = acos(d)
+
+                # True anomaly is angle between eccentricity
+                # vector and position vector.
+                self.f = acos(dot(ev, r) / (norm(ev) * norm(r)))
+
                 if dot(r, v) < 0:
                     self.f = 2 * pi - self.f
+
+        # Fix mean anomaly at epoch for new orbit and position.
         self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
+
+        # Now check that the computed properties for position and velocity are
+        # reasonably close to the inputs.
+        # 1e-4 is a large uncertainty, but we don't want to throw an error
+        # within small differences (e.g. 1e-4 m is 0.1 mm)
+        if (abs(self.v - v) > 1e-4).any() or (abs(self.r - r) > 1e-4).any():
+            raise RuntimeError(
+                'Failed to set orbital elements for velocity. Please file a bug'
+                ' report at https://github.com/RazerM/orbital/issues')
 
     @property
     def n(self):
@@ -426,15 +464,15 @@ class KeplerianElements():
 
     def __str__(self):
         return ('{name}:\n'
-                '\tSemimajor axis (a)                           = {a!r} m,\n'
-                '\tEccentricity (e)                             = {e!r},\n'
-                '\tInclination (i)                              = {i!r} deg,\n'
-                '\tRight ascension of the ascending node (raan) = {raan!r} deg,\n'
-                '\tArgument of perigee (arg_pe)                 = {arg_pe!r} deg,\n'
-                '\tMean anomaly at ref_epoch (M0)               = {M0!r} deg,\n'
-                '\tState:\n'
-                '\t\tMean anomaly (M)                           = {M!r} deg,\n'
-                '\t\tTime (t)                                   = {t!r} s'
+                '    Semimajor axis (a)                           = {a!r} m,\n'
+                '    Eccentricity (e)                             = {e!r},\n'
+                '    Inclination (i)                              = {i!r} deg,\n'
+                '    Right ascension of the ascending node (raan) = {raan!r} deg,\n'
+                '    Argument of perigee (arg_pe)                 = {arg_pe!r} deg,\n'
+                '    Mean anomaly at ref_epoch (M0)               = {M0!r} deg,\n'
+                '    State:\n'
+                '        Mean anomaly (M)                         = {M!r} deg,\n'
+                '        Time (t)                                 = {t!r} s'
                 ).format(
                     name=self.__class__.__name__,
                     a=self.a,
