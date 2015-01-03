@@ -2,9 +2,6 @@
 Maneuvers
 *********
 
-**Note:** It appears that matplotlib in IPython Notebook does not render
-the position dots on the plots.
-
 .. code:: python
 
     from scipy.constants import kilo

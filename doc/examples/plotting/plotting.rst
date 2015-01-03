@@ -44,7 +44,9 @@ Animation
 .. code:: python
     
     plot3d(molniya1, title='Molniya 2', animate=True)
-.. image:: anim3d.gif
+.. raw:: html
+
+    <img class="gfyitem" data-id="HandyKeyHorsefly" />
 
 Maneuvers
 ---------
