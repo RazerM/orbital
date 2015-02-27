@@ -1,3 +1,5 @@
+# encoding: utf-8
+from __future__ import absolute_import, division, print_function
 from copy import copy
 import warnings
 
@@ -28,7 +30,7 @@ __all__ = [
 ]
 
 
-class Operation:
+class Operation(object):
     """Base class for orbital operations.
 
     Maneuvers are used by the user to construct operations, because operations
@@ -65,7 +67,7 @@ class Operation:
 
 class ImpulseOperation(Operation):
     def __init__(self):
-        super().__init__()
+        super(ImpulseOperation, self).__init__()
 
     def velocity_delta(self):
         """Return velocity delta of impulse."""
@@ -76,7 +78,7 @@ class ImpulseOperation(Operation):
 
 class TimeOperation(Operation):
     def __init__(self):
-        super().__init__()
+        super(TimeOperation, self).__init__()
 
     def time_delta(self, orbit):
         """Return the time delta to propagate the orbit by.
@@ -94,7 +96,7 @@ class SetApocenterRadiusTo(ImpulseOperation):
     position must be at pericenter.
     """
     def __init__(self, apocenter_radius):
-        super().__init__()
+        super(SetApocenterRadiusTo, self).__init__()
         self.apocenter_radius = apocenter_radius
 
     def __apply__(self, orbit):
@@ -149,7 +151,7 @@ class SetApocenterAltitudeTo(ImpulseOperation):
     position must be at pericenter.
     """
     def __init__(self, apocenter_altitude):
-        super().__init__()
+        super(SetApocenterAltitudeTo, self).__init__()
         self.apocenter_altitude = apocenter_altitude
 
     def __apply__(self, orbit):
@@ -207,7 +209,7 @@ class ChangeApocenterBy(ImpulseOperation):
     position must be at pericenter.
     """
     def __init__(self, delta):
-        super().__init__()
+        super(ChangeApocenterBy, self).__init__()
         self.delta = delta
 
     def __apply__(self, orbit):
@@ -262,7 +264,7 @@ class SetPericenterRadiusTo(ImpulseOperation):
     position must be at apocenter.
     """
     def __init__(self, pericenter_radius):
-        super().__init__()
+        super(SetPericenterRadiusTo, self).__init__()
         self.pericenter_radius = pericenter_radius
 
     def __apply__(self, orbit):
@@ -317,7 +319,7 @@ class SetPericenterAltitudeTo(ImpulseOperation):
     position must be at apocenter.
     """
     def __init__(self, pericenter_altitude):
-        super().__init__()
+        super(SetPericenterAltitudeTo, self).__init__()
         self.pericenter_altitude = pericenter_altitude
 
     def __apply__(self, orbit):
@@ -375,7 +377,7 @@ class ChangePericenterBy(ImpulseOperation):
     position must be at apocenter.
     """
     def __init__(self, delta):
-        super().__init__()
+        super(ChangePericenterBy, self).__init__()
         self.delta = delta
 
     def __apply__(self, orbit):
@@ -430,7 +432,7 @@ class SetInclinationTo(ImpulseOperation):
     position must be at the ascending or descending node.
     """
     def __init__(self, inclination):
-        super().__init__()
+        super(SetInclinationTo, self).__init__()
         self.inclination = inclination
 
     def __apply__(self, orbit):
@@ -459,7 +461,7 @@ class ChangeInclinationBy(ImpulseOperation):
     position must be at the ascending or descending node.
     """
     def __init__(self, delta):
-        super().__init__()
+        super(ChangeInclinationBy, self).__init__()
         self.delta = delta
 
     def __apply__(self, orbit):
@@ -494,7 +496,7 @@ class PropagateAnomalyTo(TimeOperation):
     :param float f: True anomaly
     """
     def __init__(self, **kwargs):
-        super().__init__()
+        super(PropagateAnomalyTo, self).__init__()
 
         # The defaults
         valid_args = set(['M', 'E', 'f'])
@@ -555,7 +557,7 @@ class PropagateAnomalyBy(TimeOperation):
     :param float f: True anomaly
     """
     def __init__(self, **kwargs):
-        super().__init__()
+        super(PropagateAnomalyBy, self).__init__()
 
         # The defaults
         valid_args = set(['M', 'E', 'f'])
@@ -608,7 +610,7 @@ class Circularise(ImpulseOperation):
     """Operation for circularising an orbit."""
     def __init__(self, raise_pericenter=True):
         """Assumptions: anomaly is at the correct apside."""
-        super().__init__()
+        super(Circularise, self).__init__()
         self.raise_pericenter = raise_pericenter
 
     def __apply__(self, orbit):
@@ -657,7 +659,7 @@ class SetPericenterHere(Operation):
     for a maneuver to an elliptical orbit. Initial orbit must be circular.
     """
     def __init__(self):
-        super().__init__()
+        super(SetPericenterHere, self).__init__()
 
     def __apply__(self, orbit):
         """Assumptions: orbit is circular"""
@@ -674,7 +676,7 @@ class SetPericenterHere(Operation):
         return '{}()'.format(__class__.__name__)
 
 
-class Maneuver:
+class Maneuver(object):
     """A Maneuver is a collection of operations, and class methods are provided
     to easily create maneuvers which ensure orbits are propagated to the
     correct position between impulse operations.

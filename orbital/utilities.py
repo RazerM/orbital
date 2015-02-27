@@ -1,3 +1,5 @@
+# encoding: utf-8
+from __future__ import absolute_import, division, print_function
 from collections import namedtuple
 from contextlib import contextmanager
 from math import atan2, floor, fmod, isinf, isnan
@@ -345,7 +347,7 @@ StateVector = namedtuple('StateVector', ['position', 'velocity'])
 
 # Other
 
-class Anomaly:
+class Anomaly(object):
     """This package allows an anomaly to be represented and retrieved
     unambiguously.
     """

@@ -1,7 +1,9 @@
+# encoding: utf-8
+from __future__ import absolute_import, division, print_function
 import orbital.constants as oc
 
 
-class Body:
+class Body(object):
     r"""Reference body for a Keplerian orbit.
 
     :param float mass: Mass (:math:`m`) [kg]

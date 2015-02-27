@@ -2,6 +2,8 @@
 
 This implementation was inspired by poliastro (c) 2012 Juan Luis Cano (BSD License)
 """
+# encoding: utf-8
+from __future__ import absolute_import, division, print_function
 from copy import copy
 
 from matplotlib import animation
@@ -155,7 +157,7 @@ class Plotter2D():
                                    linewidth=0, color=color))
 
 
-class Plotter3D():
+class Plotter3D(object):
     """3D Plotter
 
     Handles still and animated plots of an orbit.

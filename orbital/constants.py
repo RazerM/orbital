@@ -1,3 +1,5 @@
+# encoding: utf-8
+from __future__ import absolute_import, division, print_function
 from scipy.constants import kilo
 
 # IAU 2009 System of Astronomical Constants
