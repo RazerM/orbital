@@ -1,3 +1,5 @@
+# encoding: utf-8
+from __future__ import absolute_import, division, print_function
 import warnings
 
 import numpy as np
@@ -19,7 +21,7 @@ class OrbitalWarning(Warning):
 J2000 = time.Time('J2000', scale='utc')
 
 
-class KeplerianElements():
+class KeplerianElements(object):
 
     """Defines an orbit using keplerian elements.
 
