@@ -36,26 +36,23 @@ class PyTest(Command):
         errno = subprocess.call([sys.executable, 'runtests.py'])
         raise SystemExit(errno)
 
-setup(name='OrbitalPy',
-      version=VERSION,
-      description=DESCRIPTION,
-      long_description=open('README').read(),
-      author=AUTHOR,
-      author_email=EMAIL,
-      url='https://github.com/RazerM/orbital',
-      packages=find_packages(),
-      cmdclass={'test': PyTest},
-      classifiers=[
-          'Development Status :: 3 - Alpha',
-          'Intended Audience :: Science/Research',
-          'Topic :: Scientific/Engineering :: Astronomy',
-          'License :: OSI Approved :: MIT License',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.0',
-          'Programming Language :: Python :: 3.1',
-          'Programming Language :: Python :: 3.2',
-          'Programming Language :: Python :: 3.3',
-          'Programming Language :: Python :: 3.4'
-      ],
-      license=LICENSE,
-      install_requires=requires)
+setup(
+    name='OrbitalPy',
+    version=VERSION,
+    description=DESCRIPTION,
+    long_description=open('README').read(),
+    author=AUTHOR,
+    author_email=EMAIL,
+    url='https://github.com/RazerM/orbital',
+    packages=find_packages(),
+    cmdclass={'test': PyTest},
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Astronomy',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+    ],
+    license=LICENSE,
+    install_requires=requires)
