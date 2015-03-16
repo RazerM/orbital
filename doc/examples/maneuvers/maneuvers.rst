@@ -10,6 +10,7 @@ Maneuvers
     from orbital.bodies import earth
     from orbital.maneuver import Maneuver
     from orbital.plotting import plot
+
 Here, we define an orbit and then plot it with several different
 maneuvers applied.
 
@@ -87,6 +88,7 @@ To apply a maneuver, simply use the following method:
 .. code:: python
 
     orbit1.apply_maneuver(man7)
+    
 Now orbit can be plotted to show its new state:
 
 .. code:: python
