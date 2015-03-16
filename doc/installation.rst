@@ -2,7 +2,7 @@
 Installation
 ************
 
-The Orbital package can be installed on any system running **Python 3**.
+The Orbital package can be installed on any system running **Python 2.7 or 3**.
 
 The recommended installation method is using ``pip``.
 
