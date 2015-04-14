@@ -6,18 +6,18 @@ This implementation was inspired by poliastro (c) 2012 Juan Luis Cano (BSD Licen
 from __future__ import absolute_import, division, print_function
 from copy import copy
 
-from matplotlib import animation
-from matplotlib.patches import Circle
-from mpl_toolkits.mplot3d.axes3d import Axes3D
-from numpy import sin, cos
-from scipy.constants import kilo, pi
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import animation
+from matplotlib.patches import Circle
+from mpl_toolkits.mplot3d.axes3d import Axes3D
+from numpy import cos, sin
+from scipy.constants import kilo, pi
 
 from orbital.maneuver import TimeOperation
-from orbital.utilities import (lookahead, orbit_radius, saved_state,
-                               uvw_from_elements)
+from orbital.utilities import (
+    lookahead, orbit_radius, saved_state, uvw_from_elements)
 
 
 def plot2d(orbit, title='', maneuver=None, animate=False, speedup=5000):

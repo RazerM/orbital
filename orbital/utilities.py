@@ -1,11 +1,13 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function
+
 from collections import namedtuple
 from contextlib import contextmanager
+from copy import deepcopy
 from math import atan2, floor, fmod, isinf, isnan
 
 import numpy as np
-from numpy import cross, cos, dot, sin, sqrt
+from numpy import cos, cross, dot, sin, sqrt
 from numpy.linalg import norm
 from scipy.constants import pi
 
@@ -45,12 +47,13 @@ class OrbitalWarning(Warning):
 
 # Generators, context managers
 
+
 @contextmanager
 def saved_state(orbit):
     """Context manager to restore orbit upon leaving the block."""
-    state = orbit.__getstate__()
+    state = deepcopy(orbit.__dict__)
     yield
-    orbit.__setstate__(state)
+    orbit.__dict__.update(state)
 
 
 def lookahead(collection, fillvalue=None):
