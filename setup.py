@@ -17,7 +17,7 @@ DESCRIPTION = metadata['description']
 
 AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
 
-requires = ['numpy', 'scipy', 'astropy', 'matplotlib']
+requires = ['numpy', 'scipy', 'astropy', 'matplotlib', 'represent']
 
 
 class PyTest(Command):

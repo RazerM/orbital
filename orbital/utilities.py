@@ -22,6 +22,7 @@ __all__ = [
     'mean_anomaly_from_true',
     'node_vector',
     'orbit_radius',
+    'OrbitalWarning',
     'Position',
     'radius_from_altitude',
     'specific_orbital_energy',
@@ -36,6 +37,10 @@ __all__ = [
 # Exceptions
 
 class ConvergenceError(Exception):
+    pass
+
+
+class OrbitalWarning(Warning):
     pass
 
 # Generators, context managers

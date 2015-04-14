@@ -1,27 +1,24 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function
+
 import warnings
 
 import numpy as np
 from astropy import time
-from numpy import arctan, cos, dot, sin, sqrt, degrees
 from numpy import arccos as acos
+from numpy import arctan, cos, degrees, dot, sin, sqrt
 from numpy.linalg import norm
-from scipy.constants import pi
+from represent import RepresentationMixin
+from scipy.constants import kilo, pi
 
 import orbital.maneuver
 import orbital.utilities as ou
 from orbital.utilities import *
 
-
-class OrbitalWarning(Warning):
-    pass
-
-
 J2000 = time.Time('J2000', scale='utc')
 
 
-class KeplerianElements(object):
+class KeplerianElements(RepresentationMixin, object):
 
     """Defines an orbit using keplerian elements.
 
@@ -451,38 +448,24 @@ class KeplerianElements(object):
         """
         return uvw_from_elements(self.i, self.raan, self.arg_pe, self.f)
 
-    def __repr__(self):
-        return ('{name}(\n'
-                '\ta={self.a!r},\n'
-                '\te={self.e!r},\n'
-                '\ti={self.i!r},\n'
-                '\traan={self.raan!r},\n'
-                '\targ_pe={self.arg_pe!r},\n'
-                '\tM0={self.M0!r},\n'
-                '\tbody={self.body!r},\n'
-                '\tref_epoch={self.ref_epoch!r})'
-                ).format(
-                    name=self.__class__.__name__,
-                    self=self)
-
     def __str__(self):
         return ('{name}:\n'
-                '    Semimajor axis (a)                           = {a!r} m,\n'
-                '    Eccentricity (e)                             = {e!r},\n'
-                '    Inclination (i)                              = {i!r} deg,\n'
-                '    Right ascension of the ascending node (raan) = {raan!r} deg,\n'
-                '    Argument of perigee (arg_pe)                 = {arg_pe!r} deg,\n'
-                '    Mean anomaly at ref_epoch (M0)               = {M0!r} deg,\n'
-                '    State:\n'
-                '        Mean anomaly (M)                         = {M!r} deg,\n'
-                '        Time (t)                                 = {t!r} s'
+                '    Semimajor axis (a)                           = {a:10.3f} km\n'
+                '    Eccentricity (e)                             = {self.e:13.6f}\n'
+                '    Inclination (i)                              = {i:8.1f} deg\n'
+                '    Right ascension of the ascending node (raan) = {raan:8.1f} deg\n'
+                '    Argument of perigee (arg_pe)                 = {arg_pe:8.1f} deg\n'
+                '    Mean anomaly at reference epoch (M0)         = {M0:8.1f} deg\n'
+                '    Reference epoch (ref_epoch)                  = {self.ref_epoch!s}\n'
+                '        Mean anomaly (M)                         = {M:8.1f} deg\n'
+                '        Time (t)                                 = {self.t:.1f} s\n'
+                '        Epoch (epoch)                            = {self.epoch!s}'
                 ).format(
                     name=self.__class__.__name__,
-                    a=self.a,
-                    e=self.e,
+                    self=self,
+                    a=self.a / kilo,
                     i=degrees(self.i),
                     raan=degrees(self.raan),
                     arg_pe=degrees(self.arg_pe),
                     M0=degrees(self.M0),
-                    M=degrees(self.M),
-                    t=self.t)
+                    M=degrees(self.M))

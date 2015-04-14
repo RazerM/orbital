@@ -8,7 +8,7 @@ from numpy import allclose as almost_equal
 
 from orbital.utilities import (
     elements_for_apsides, mean_anomaly_from_eccentric, mean_anomaly_from_true,
-    radius_from_altitude, saved_state)
+    OrbitalWarning, radius_from_altitude, saved_state)
 import orbital.utilities as ou
 
 _copy = copy  # Used when a keyword argument is called 'copy'

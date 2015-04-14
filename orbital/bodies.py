@@ -1,9 +1,12 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function
+
+from represent import RepresentationMixin
+
 import orbital.constants as oc
 
 
-class Body(object):
+class Body(RepresentationMixin, object):
     r"""Reference body for a Keplerian orbit.
 
     :param float mass: Mass (:math:`m`) [kg]
@@ -26,6 +29,8 @@ class Body(object):
         self.apoapsis_names = apoapsis_names
         self.periapsis_names = periapsis_names
         self.plot_color = plot_color
+
+        super(Body, self).__init__()
 
     @property
     def apoapsis_names(self):
@@ -53,6 +58,25 @@ class Body(object):
         else:
             self._periapsis_names = value
 
+    def __repr__(self):
+        # Intercept __repr__ from RepresentationMixin to
+        # use orbital.bodies.<planet> for the defaults.
+        if __name__ == 'orbital.bodies':
+            for name, instance in _defaults.items():
+                if self is instance:
+                    return __name__ + '.' + name
+        return super(Body, self).__repr__()
+
+    def _repr_pretty_(self, p, cycle):
+        # Intercept _repr_pretty_ from RepresentationMixin to
+        # use orbital.bodies.<planet> for the defaults.
+        if __name__ == 'orbital.bodies':
+            for name, instance in _defaults.items():
+                if self is instance:
+                    p.text(__name__ + '.' + name)
+                    return
+
+        super(Body, self)._repr_pretty_(p, cycle)
 
 mercury = Body(
     mass=oc.mercury_mass,
@@ -141,3 +165,13 @@ neptune = Body(
     periapsis_names='periposeidion',
     plot_color='#8da4ff'
 )
+
+_defaults = {
+    'mercury': mercury,
+    'venus': venus,
+    'earth': earth,
+    'mars': mars,
+    'jupiter': jupiter,
+    'saturn': saturn,
+    'uranus': uranus,
+    'neptune': neptune}
