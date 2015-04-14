@@ -486,27 +486,3 @@ class KeplerianElements(object):
                     M0=degrees(self.M0),
                     M=degrees(self.M),
                     t=self.t)
-
-    def __getstate__(self):
-        return {'_a': self._a,
-                'e': self.e,
-                'i': self.i,
-                'raan': self.raan,
-                'arg_pe': self.arg_pe,
-                'M0': self.M0,
-                'body': self.body,
-                'ref_epoch': self.ref_epoch,
-                '_M': self._M,
-                '_t': self._t}
-
-    def __setstate__(self, state):
-        self._a = state['_a']
-        self.e = state['e']
-        self.i = state['i']
-        self.raan = state['raan']
-        self.arg_pe = state['arg_pe']
-        self.M0 = state['M0']
-        self.body = state['body']
-        self.ref_epoch = state['ref_epoch']
-        self._M = state['_M']
-        self._t = state['_t']
