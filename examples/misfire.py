@@ -1,3 +1,13 @@
+##############################################
+# Allow this code to be run from the examples
+# directory without orbital installed.
+from pathlib import Path
+import sys
+
+examples_dir = Path(__file__).parent.resolve()
+orbital_dir = examples_dir.parent
+sys.path.append(str(orbital_dir))
+##############################################
 from copy import copy
 
 from numpy import cos, degrees, radians, sin, sqrt
