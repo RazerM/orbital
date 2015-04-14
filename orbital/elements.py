@@ -346,12 +346,13 @@ class KeplerianElements(object):
 
     def __getattr__(self, attr):
         """Dynamically respond to correct apsis names for given body."""
-        for apoapsis_name in self.body.apoapsis_names:
-            if attr == '{}_radius'.format(apoapsis_name):
-                return self.apocenter_radius
-        for periapsis_name in self.body.periapsis_names:
-            if attr == '{}_radius'.format(periapsis_name):
-                return self.pericenter_radius
+        if not attr.startswith('__'):
+            for apoapsis_name in self.body.apoapsis_names:
+                if attr == '{}_radius'.format(apoapsis_name):
+                    return self.apocenter_radius
+            for periapsis_name in self.body.periapsis_names:
+                if attr == '{}_radius'.format(periapsis_name):
+                    return self.pericenter_radius
         raise AttributeError(
             "'{name}' object has no attribute '{attr}'"
             .format(name=type(self).__name__, attr=attr))
