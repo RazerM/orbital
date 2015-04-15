@@ -1,13 +1,14 @@
+import re
 from glob import glob
 from pathlib import Path
 from shutil import rmtree
-from subprocess import call, check_call, check_output, CalledProcessError
-import re
+from subprocess import call, CalledProcessError, check_call, check_output
 
-from packaging.version import VERSION_PATTERN, Version, _Version
+from clint.textui import colored, indent, puts
+from packaging.version import _Version, Version, VERSION_PATTERN
+
+from doc import gen as doc_gen
 from shovel import task
-
-from doc import upload as doc_upload
 
 shovel_dir = Path(__file__).parent.resolve()
 orbital_dir = shovel_dir.parent
@@ -102,7 +103,7 @@ def upload():
 
 @task
 def release():
-    """Bump version, tag, build, upload, upload docs, bump version."""
+    """Bump version, tag, build, gen docs."""
     if check_staged():
         raise EnvironmentError('There are staged changes, abort.')
     if check_unstaged():
@@ -110,9 +111,11 @@ def release():
     bump()
     tag()
     build()
-    upload()
-    doc_upload()
-    bump(dev=True)
+    doc_gen()
+    puts(colored.yellow("Remember to upload documentation and package:"))
+    with indent(2):
+        puts(colored.cyan("shovel doc.upload"))
+        puts(colored.cyan("shovel version.upload"))
 
 
 def check_staged():
