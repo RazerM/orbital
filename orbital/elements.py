@@ -48,6 +48,8 @@ class KeplerianElements(RepresentationMixin, object):
         self.ref_epoch = ref_epoch
 
         self._t = 0  # This is important because M := M0
+        
+        super(KeplerianElements, self).__init__()
 
     @classmethod
     def with_altitude(cls, altitude, body, e=0, i=0, raan=0, arg_pe=0, M0=0,
