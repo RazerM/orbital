@@ -1,4 +1,5 @@
 import re
+from contextlib import suppress
 from glob import glob
 from pathlib import Path
 from shutil import rmtree
@@ -85,7 +86,8 @@ def tag():
 @task
 def build():
     """Build source distribution."""
-    rmtree(str(orbital_dir / 'dist'))
+    with suppress(FileNotFoundError):
+        rmtree(str(orbital_dir / 'dist'))
     o = check_output(['python', 'setup.py', 'sdist'])
     print(o.decode('utf-8'))
 
