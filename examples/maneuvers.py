@@ -11,10 +11,7 @@ sys.path.append(str(orbital_dir))
 
 from scipy.constants import kilo
 
-from orbital import KeplerianElements
-from orbital.bodies import earth
-from orbital.maneuver import Maneuver
-from orbital.plotting import plot
+from orbital import earth, KeplerianElements, Maneuver, plot
 
 orbit1 = KeplerianElements.with_altitude(1000 * kilo, body=earth)
 

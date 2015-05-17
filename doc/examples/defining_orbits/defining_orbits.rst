@@ -8,9 +8,7 @@ Defining Orbits
     from numpy import radians
     from scipy.constants import kilo
     
-    from orbital import KeplerianElements
-    from orbital.bodies import earth
-    from orbital.plotting import plot
+    from orbital import earth, KeplerianElements, plot
     
 Here, several convenience methods for defining orbits are shown.
 
@@ -27,7 +25,7 @@ Here, several convenience methods for defining orbits are shown.
 .. code:: python
 
     # Create molniya orbit from period and eccentricity
-    from orbital.constants import earth_sidereal_day
+    from orbital import earth_sidereal_day
     molniya1 = KeplerianElements.with_period(
         earth_sidereal_day / 2, e=0.741, i=radians(63.4), arg_pe=radians(270),
         body=earth)

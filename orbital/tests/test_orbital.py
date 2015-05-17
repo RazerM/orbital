@@ -2,8 +2,7 @@ import math
 import unittest
 
 from numpy import radians
-from orbital.bodies import earth, venus
-from orbital.elements import KeplerianElements
+from orbital import earth, KeplerianElements, venus
 from orbital.utilities import mod
 from scipy.constants import kilo
 

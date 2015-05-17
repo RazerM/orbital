@@ -8,8 +8,8 @@ from represent import ReprHelperMixin
 from numpy import allclose as almost_equal
 from scipy.constants import pi
 
-import orbital.utilities as ou
-from orbital.utilities import (
+from . import utilities as ou
+from .utilities import (
     elements_for_apsides, mean_anomaly_from_eccentric, mean_anomaly_from_true,
     radius_from_altitude, saved_state)
 

@@ -17,8 +17,7 @@ The definition of specific apside names allows the following code:
 
 .. code:: python
 
-   >>> from orbital import KeplerianElements
-   >>> from orbital.bodies import uranus
+   >>> from orbital import KeplerianElements, uranus
  
    >>> orbit = KeplerianElements.with_altitude(6e8, body=uranus)
    >>> orbit.apouranion_radius

@@ -3,7 +3,18 @@ from __future__ import absolute_import, division, print_function
 
 from represent import RepresentationMixin
 
-import orbital.constants as oc
+from . import constants as oc
+
+__all__ = [
+    'mercury',
+    'venus',
+    'earth',
+    'mars',
+    'jupiter',
+    'saturn',
+    'uranus',
+    'neptune',
+]
 
 
 class Body(RepresentationMixin, object):

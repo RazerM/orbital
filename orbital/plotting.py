@@ -15,9 +15,17 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 from numpy import cos, sin
 from scipy.constants import kilo, pi
 
-from orbital.maneuver import TimeOperation
-from orbital.utilities import (
+from .maneuver import TimeOperation
+from .utilities import (
     lookahead, orbit_radius, saved_state, uvw_from_elements)
+
+__all__ = [
+    'plot2d',
+    'plot3d',
+    'plot',
+    'Plotter2D',
+    'Plotter3D',
+]
 
 
 def plot2d(orbit, title='', maneuver=None, animate=False, speedup=5000):

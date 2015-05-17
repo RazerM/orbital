@@ -7,14 +7,12 @@ Plotting
     from numpy import radians
     from scipy.constants import kilo
     
-    from orbital import KeplerianElements
-    from orbital.bodies import earth
-    from orbital.maneuver import Maneuver
-    from orbital.plotting import plot, plot3d
+    from orbital import earth, KeplerianElements, Maneuver, plot, plot3d
+
 .. code:: python
 
     # Create molniya orbit from period and eccentricity
-    from orbital.constants import earth_sidereal_day
+    from orbital import earth_sidereal_day
     molniya = KeplerianElements.with_period(
         earth_sidereal_day / 2, e=0.741, i=radians(63.4), arg_pe=radians(270),
         body=earth)

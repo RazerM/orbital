@@ -12,9 +12,7 @@ sys.path.append(str(orbital_dir))
 from numpy import radians
 from scipy.constants import kilo
 
-from orbital import KeplerianElements
-from orbital.bodies import earth
-from orbital.plotting import plot
+from orbital import earth, KeplerianElements, plot
 
 
 # Create circular orbit with 90 minute period

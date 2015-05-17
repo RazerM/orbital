@@ -1,9 +1,9 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function
 
-from datetime import timedelta
+from datetime import timedelta as _timedelta
 
-from scipy.constants import kilo
+from scipy.constants import kilo as _kilo
 
 # IAU 2009 System of Astronomical Constants
 # Updated as of 2014
@@ -24,15 +24,15 @@ saturn_mass  = sun_mass / 3.4979018e3
 uranus_mass  = sun_mass / 2.290298e4
 neptune_mass = sun_mass / 1.941226e4
 
-sun_radius_equatorial     = 696000    * kilo
-mercury_radius_equatorial = 2439.7    * kilo
-venus_radius_equatorial   = 6051.8    * kilo
-earth_radius_equatorial   = 6378.1366 * kilo
-mars_radius_equatorial    = 3396.19   * kilo
-jupiter_radius_equatorial = 71492     * kilo
-saturn_radius_equatorial  = 60268     * kilo
-uranus_radius_equatorial  = 25559     * kilo
-neptune_radius_equatorial = 24764     * kilo
+sun_radius_equatorial     = 696000    * _kilo
+mercury_radius_equatorial = 2439.7    * _kilo
+venus_radius_equatorial   = 6051.8    * _kilo
+earth_radius_equatorial   = 6378.1366 * _kilo
+mars_radius_equatorial    = 3396.19   * _kilo
+jupiter_radius_equatorial = 71492     * _kilo
+saturn_radius_equatorial  = 60268     * _kilo
+uranus_radius_equatorial  = 25559     * _kilo
+neptune_radius_equatorial = 24764     * _kilo
 
 mercury_mu = mercury_mass * constant_of_gravitation
 venus_mu   = venus_mass   * constant_of_gravitation
@@ -46,23 +46,23 @@ mercury_radius_polar = mercury_radius_mean = mercury_radius_equatorial
 venus_radius_polar = venus_radius_mean = venus_radius_equatorial
 
 # The following constants are not from IAU
-earth_radius_mean    = 6371.0 * kilo
-earth_radius_polar   = 6356.8 * kilo
+earth_radius_mean    = 6371.0 * _kilo
+earth_radius_polar   = 6356.8 * _kilo
 
-mars_radius_mean     = 3389.5 * kilo
-mars_radius_polar    = 3376.2 * kilo
+mars_radius_mean     = 3389.5 * _kilo
+mars_radius_polar    = 3376.2 * _kilo
 
-jupiter_radius_mean  = 69911 * kilo
-jupiter_radius_polar = 66854 * kilo
+jupiter_radius_mean  = 69911 * _kilo
+jupiter_radius_polar = 66854 * _kilo
 
-saturn_radius_mean   = 58232 * kilo
-saturn_radius_polar  = 54364 * kilo
+saturn_radius_mean   = 58232 * _kilo
+saturn_radius_polar  = 54364 * _kilo
 
-uranus_radius_mean   = 25362 * kilo
-uranus_radius_polar  = 24973 * kilo
+uranus_radius_mean   = 25362 * _kilo
+uranus_radius_polar  = 24973 * _kilo
 
-neptune_radius_mean  = 24622 * kilo
-neptune_radius_polar = 24341 * kilo
+neptune_radius_mean  = 24622 * _kilo
+neptune_radius_polar = 24341 * _kilo
 
 # 4.1 s, 56 minutes, 23 hours
-earth_sidereal_day = timedelta(hours=23, minutes=56, seconds=4.1).total_seconds()
+earth_sidereal_day = _timedelta(hours=23, minutes=56, seconds=4.1).total_seconds()

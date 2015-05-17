@@ -11,8 +11,7 @@ sys.path.append(str(orbital_dir))
 from copy import copy
 
 from numpy import cos, degrees, radians, sin, sqrt
-from orbital import KeplerianElements
-from orbital.bodies import earth
+from orbital import earth, KeplerianElements
 from scipy.constants import kilo
 import orbital.utilities as util
 

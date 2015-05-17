@@ -21,10 +21,8 @@ $ pip install orbitalpy
 ### Example
 
 ```python
-from orbital import KeplerianElements
-from orbital.bodies import earth
-from orbital.maneuver import Maneuver
-from orbital.plotting import plot
+from orbital import earth, KeplerianElements, Maneuver, plot
+
 from scipy.constants import kilo
 import matplotlib.pyplot as plt
 

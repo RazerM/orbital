@@ -3,8 +3,7 @@ import unittest
 from scipy.constants import kilo, mega, pi
 from numpy import radians
 
-from orbital import KeplerianElements
-from orbital.bodies import earth
+from orbital import earth, KeplerianElements
 from orbital.maneuver import *
 
 

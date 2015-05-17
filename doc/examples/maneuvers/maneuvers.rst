@@ -6,10 +6,7 @@ Maneuvers
 
     from scipy.constants import kilo
     
-    from orbital import KeplerianElements
-    from orbital.bodies import earth
-    from orbital.maneuver import Maneuver
-    from orbital.plotting import plot
+    from orbital import earth, KeplerianElements, Maneuver, plot
 
 Here, we define an orbit and then plot it with several different
 maneuvers applied.
@@ -20,6 +17,7 @@ to the original orbit.
 .. code:: python
 
     orbit1 = KeplerianElements.with_altitude(1000 * kilo, body=earth)
+
 .. code:: python
 
     man1 = Maneuver.set_apocenter_altitude_to(10000 * kilo)
