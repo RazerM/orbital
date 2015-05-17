@@ -13,6 +13,6 @@ __all__ = (bodies.__all__ + elements.__all__ + maneuver.__all__ +
            plotting.__all__ + utilities.__all__)
 
 __author__ = 'Frazer McLean <frazer@frazermclean.co.uk>'
-__version__ = '0.6.0'
+__version__ = '0.6.2'
 __license__ = 'MIT'
 __description__ = 'High level orbital mechanics package.'
