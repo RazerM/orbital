@@ -1,15 +1,17 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function
-from copy import copy
+
 import warnings
+from copy import copy
 
-from scipy.constants import pi
+from represent import ReprHelperMixin
 from numpy import allclose as almost_equal
+from scipy.constants import pi
 
+import orbital.utilities as ou
 from orbital.utilities import (
     elements_for_apsides, mean_anomaly_from_eccentric, mean_anomaly_from_true,
-    OrbitalWarning, radius_from_altitude, saved_state)
-import orbital.utilities as ou
+    radius_from_altitude, saved_state)
 
 _copy = copy  # Used when a keyword argument is called 'copy'
 
@@ -91,7 +93,7 @@ class TimeOperation(Operation):
             .format(__name__, __class__.__name__, self.time_delta.__name__))
 
 
-class SetApocenterRadiusTo(ImpulseOperation):
+class SetApocenterRadiusTo(ReprHelperMixin, ImpulseOperation):
     """Operation for setting apocenter radius. At time of application, orbit
     position must be at pericenter.
     """
@@ -142,11 +144,11 @@ class SetApocenterRadiusTo(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.apocenter_radius)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('apocenter_radius')
 
 
-class SetApocenterAltitudeTo(ImpulseOperation):
+class SetApocenterAltitudeTo(ReprHelperMixin, ImpulseOperation):
     """Operation for setting apocenter altitude. At time of application, orbit
     position must be at pericenter.
     """
@@ -200,11 +202,11 @@ class SetApocenterAltitudeTo(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.apocenter_altitude)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('apocenter_altitude')
 
 
-class ChangeApocenterBy(ImpulseOperation):
+class ChangeApocenterBy(ReprHelperMixin, ImpulseOperation):
     """Operation for changing apocenter radius. At time of application, orbit
     position must be at pericenter.
     """
@@ -255,11 +257,11 @@ class ChangeApocenterBy(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.delta)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('delta')
 
 
-class SetPericenterRadiusTo(ImpulseOperation):
+class SetPericenterRadiusTo(ReprHelperMixin, ImpulseOperation):
     """Operation for setting pericenter radius. At time of application, orbit
     position must be at apocenter.
     """
@@ -310,11 +312,11 @@ class SetPericenterRadiusTo(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.pericenter_radius)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('pericenter_radius')
 
 
-class SetPericenterAltitudeTo(ImpulseOperation):
+class SetPericenterAltitudeTo(ReprHelperMixin, ImpulseOperation):
     """Operation for setting pericenter altitude. At time of application, orbit
     position must be at apocenter.
     """
@@ -368,11 +370,11 @@ class SetPericenterAltitudeTo(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.pericenter_altitude)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('pericenter_altitude')
 
 
-class ChangePericenterBy(ImpulseOperation):
+class ChangePericenterBy(ReprHelperMixin, ImpulseOperation):
     """Operation for changing pericenter. At time of application, orbit
     position must be at apocenter.
     """
@@ -423,11 +425,11 @@ class ChangePericenterBy(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.delta)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('delta')
 
 
-class SetInclinationTo(ImpulseOperation):
+class SetInclinationTo(ReprHelperMixin, ImpulseOperation):
     """Operation for setting inclination. At time of application, orbit
     position must be at the ascending or descending node.
     """
@@ -452,11 +454,11 @@ class SetInclinationTo(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.inclination)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('inclination')
 
 
-class ChangeInclinationBy(ImpulseOperation):
+class ChangeInclinationBy(ReprHelperMixin, ImpulseOperation):
     """Operation for changing inclination. At time of application, orbit
     position must be at the ascending or descending node.
     """
@@ -481,11 +483,11 @@ class ChangeInclinationBy(ImpulseOperation):
 
         return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.delta)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('delta')
 
 
-class PropagateAnomalyTo(TimeOperation):
+class PropagateAnomalyTo(ReprHelperMixin, TimeOperation):
     """Operation for propagating to time in future where anomaly is equal to
     value passed in.
 
@@ -499,7 +501,7 @@ class PropagateAnomalyTo(TimeOperation):
         super(PropagateAnomalyTo, self).__init__()
 
         # The defaults
-        valid_args = set(['M', 'E', 'f'])
+        valid_args = {'M', 'E', 'f'}
 
         extra_args = set(kwargs.keys()) - valid_args
 
@@ -542,12 +544,11 @@ class PropagateAnomalyTo(TimeOperation):
 
         plotter._plot_position(orbit, f2, propagated=True)
 
-    def __repr__(self):
-        return '{}({key}={anomaly!r})'.format(__class__.__name__, key=self.key,
-                                              anomaly=self.anomaly)
+    def _repr_helper_(self, r):
+        r.keyword_with_value(self.key, self.anomaly)
 
 
-class PropagateAnomalyBy(TimeOperation):
+class PropagateAnomalyBy(ReprHelperMixin, TimeOperation):
     """Operation for propagating anomaly by a given amount.
 
     One (and only one) of these parameters must be passed in:
@@ -601,12 +602,11 @@ class PropagateAnomalyBy(TimeOperation):
 
         plotter._plot_position(orbit, f2, propagated=True)
 
-    def __repr__(self):
-        return '{}({key}={anomaly!r})'.format(__class__.__name__, key=self.key,
-                                              anomaly=self.anomaly)
+    def _repr_helper_(self, r):
+        r.keyword_with_value(self.key, self.anomaly)
 
 
-class Circularise(ImpulseOperation):
+class Circularise(ReprHelperMixin, ImpulseOperation):
     """Operation for circularising an orbit."""
     def __init__(self, raise_pericenter=True):
         """Assumptions: anomaly is at the correct apside."""
@@ -649,12 +649,11 @@ class Circularise(ImpulseOperation):
 
             return new_velocity - old_velocity
 
-    def __repr__(self):
-        return '{}(raise_pericenter={!r})'.format(__class__.__name__,
-                                                  self.raise_pericenter)
+    def _repr_helper_(self, r):
+        r.keyword_from_attr('raise_pericenter')
 
 
-class SetPericenterHere(Operation):
+class SetPericenterHere(ReprHelperMixin, Operation):
     """Operation for setting pericenter to current location (in preparation
     for a maneuver to an elliptical orbit. Initial orbit must be circular.
     """
@@ -672,11 +671,11 @@ class SetPericenterHere(Operation):
         self.__apply__(orbit)
         plotter._plot_position(orbit, label='Pericenter set here')
 
-    def __repr__(self):
-        return '{}()'.format(__class__.__name__)
+    def _repr_helper_(self, r):
+        pass
 
 
-class Maneuver(object):
+class Maneuver(ReprHelperMixin, object):
     """A Maneuver is a collection of operations, and class methods are provided
     to easily create maneuvers which ensure orbits are propagated to the
     correct position between impulse operations.
@@ -811,8 +810,8 @@ class Maneuver(object):
             elif isinstance(operation, TimeOperation):
                 orbit.t += operation.time_delta(orbit)
 
-    def __repr__(self):
-        return '{}({!r})'.format(__class__.__name__, self.operations)
+    def _repr_helper_(self, r):
+        r.positional_from_attr('operations')
 
     def __add__(self, other):
         if isinstance(other, Maneuver):

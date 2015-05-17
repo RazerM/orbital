@@ -2,18 +2,21 @@
 from __future__ import absolute_import, division, print_function
 
 import warnings
+from datetime import timedelta
 
 import numpy as np
+import sgp4.io
+import sgp4.propagation
 from astropy import time
-from numpy import arccos as acos
-from numpy import arctan, cos, degrees, dot, sin, sqrt
-from numpy.linalg import norm
+from numpy import arctan, cos, degrees, sin, sqrt
 from represent import RepresentationMixin
 from scipy.constants import kilo, pi
+from sgp4.earth_gravity import wgs72
 
-import orbital.maneuver
-import orbital.utilities as ou
-from orbital.utilities import *
+from . import utilities as ou
+from .maneuver import (
+    Maneuver, Operation, PropagateAnomalyBy, PropagateAnomalyTo)
+from .utilities import *
 
 J2000 = time.Time('J2000', scale='utc')
 
@@ -48,6 +51,8 @@ class KeplerianElements(RepresentationMixin, object):
         self.ref_epoch = ref_epoch
 
         self._t = 0  # This is important because M := M0
+
+        super(KeplerianElements, self).__init__()
 
     @classmethod
     def with_altitude(cls, altitude, body, e=0, i=0, raan=0, arg_pe=0, M0=0,
@@ -108,6 +113,51 @@ class KeplerianElements(RepresentationMixin, object):
 
         return cls(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, M0=M0, body=body,
                    ref_epoch=ref_epoch)
+
+    @classmethod
+    def from_state_vector(cls, r, v, body, ref_epoch=J2000):
+        """Create orbit from given state vector."""
+        elements = elements_from_state_vector(r, v, body.mu)
+
+        self = cls(
+            a=elements.a,
+            e=elements.e,
+            i=elements.i,
+            raan=elements.raan,
+            arg_pe=elements.arg_pe,
+            M0=mean_anomaly_from_true(elements.e, elements.f),
+            body=body,
+            ref_epoch=ref_epoch)
+
+        # Fix mean anomaly at epoch for new orbit and position.
+        oldM0 = self.M0
+        self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
+        assert self.M0 == oldM0
+
+        # Now check that the computed properties for position and velocity are
+        # reasonably close to the inputs.
+        # 1e-4 is a large uncertainty, but we don't want to throw an error
+        # within small differences (e.g. 1e-4 m is 0.1 mm)
+        if (abs(self.v - v) > 1e-4).any() or (abs(self.r - r) > 1e-4).any():
+            raise RuntimeError(
+                'Failed to set orbital elements for velocity. Please file a bug'
+                ' report at https://github.com/RazerM/orbital/issues')
+
+        return self
+
+    @classmethod
+    def from_tle(cls, line1, line2, body):
+        """Create object by parsing TLE using SGP4."""
+
+        # Get state vector at TLE epoch
+        sat = sgp4.io.twoline2rv(line1, line2, wgs72)
+        r, v = sgp4.propagation.sgp4(sat, 0)
+        ref_epoch = time.Time(sat.epoch, scale='utc')
+
+        # Convert km to m
+        r, v = np.array(r) * kilo, np.array(v) * kilo
+
+        return cls.from_state_vector(r, v, body=body, ref_epoch=ref_epoch)
 
     @property
     def epoch(self):
@@ -207,73 +257,16 @@ class KeplerianElements(RepresentationMixin, object):
         This method uses 3 position variables, and 3 velocity
         variables to set the 6 orbital elements.
         """
-        r = self.r
-        v = value
-        h = angular_momentum(r, v)
-        n = node_vector(h)
-
-        mu = self.body.mu
-        ev = eccentricity_vector(r, v, mu)
-
-        E = specific_orbital_energy(r, v, mu)
-
-        self.a = -mu / (2 * E)
-        self.e = norm(ev)
-
-        SMALL_NUMBER = 1e-15
-
-        # Inclination is the angle between the angular
-        # momentum vector and its z component.
-        self.i = acos(h.z / norm(h))
-
-        if abs(self.i - 0) < SMALL_NUMBER:
-            # For non-inclined orbits, raan is undefined;
-            # set to zero by convention
-            self.raan = 0
-            if abs(self.e - 0) < SMALL_NUMBER:
-                # For circular orbits, place periapsis
-                # at ascending node by convention
-                self.arg_pe = 0
-            else:
-                # Argument of periapsis is the angle between
-                # eccentricity vector and its x component.
-                self.arg_pe = acos(ev.x / norm(ev))
-        else:
-            # Right ascension of ascending node is the angle
-            # between the node vector and its x component.
-            self.raan = acos(n.x / norm(n))
-            if n.y < 0:
-                self.raan = 2 * pi - self.raan
-
-            # Argument of periapsis is angle between
-            # node and eccentricity vectors.
-            self.arg_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
-
+        r, v = self.r, value
+        elements = elements_from_state_vector(r, v, self.body.mu)
+        self._a = elements.a
+        self.e = elements.e
+        self.i = elements.i
+        self.raan = elements.raan
+        self.arg_pe = elements.arg_pe
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            if abs(self.e - 0) < SMALL_NUMBER:
-                if abs(self.i - 0) < SMALL_NUMBER:
-                    # True anomaly is angle between position
-                    # vector and its x component.
-                    self.f = acos(r.x / norm(r))
-                    if v.x > 0:
-                        self.f = 2 * pi - self.f
-                else:
-                    # True anomaly is angle between node
-                    # vector and position vector.
-                    self.f = acos(dot(n, r) / (norm(n) * norm(r)))
-                    if dot(n, v) > 0:
-                        self.f = 2 * pi - self.f
-            else:
-                if ev.z < 0:
-                    self.arg_pe = 2 * pi - self.arg_pe
-
-                # True anomaly is angle between eccentricity
-                # vector and position vector.
-                self.f = acos(dot(ev, r) / (norm(ev) * norm(r)))
-
-                if dot(r, v) < 0:
-                    self.f = 2 * pi - self.f
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            self.f = elements.f
 
         # Fix mean anomaly at epoch for new orbit and position.
         self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
@@ -324,7 +317,7 @@ class KeplerianElements(RepresentationMixin, object):
 
            Only one parameter should be passed in.
         """
-        operation = orbital.maneuver.PropagateAnomalyTo(**kwargs)
+        operation = PropagateAnomalyTo(**kwargs)
         self.apply_maneuver(operation)
 
     def propagate_anomaly_by(self, **kwargs):
@@ -338,7 +331,7 @@ class KeplerianElements(RepresentationMixin, object):
 
            Only one parameter should be passed in.
         """
-        operation = orbital.maneuver.PropagateAnomalyBy(**kwargs)
+        operation = PropagateAnomalyBy(**kwargs)
         self.apply_maneuver(operation)
 
     def __getattr__(self, attr):
@@ -358,7 +351,7 @@ class KeplerianElements(RepresentationMixin, object):
         """ Apply maneuver to orbit.
 
         :param maneuver: Maneuver
-        :type maneuver: :py:class:`orbital.maneuver.Maneuver`
+        :type maneuver: :py:class:`maneuver.Maneuver`
         :param bool iter: Return an iterator.
         :param bool copy: Each orbit yielded by the generator will be a copy.
 
@@ -377,8 +370,8 @@ class KeplerianElements(RepresentationMixin, object):
 
         If each orbit returned must not be altered, use :code:`copy=True`
         """
-        if isinstance(maneuver, orbital.maneuver.Operation):
-            maneuver = orbital.maneuver.Maneuver(maneuver)
+        if isinstance(maneuver, Operation):
+            maneuver = Maneuver(maneuver)
 
         if iter:
             return maneuver.__iapply__(self, copy)
@@ -456,9 +449,10 @@ class KeplerianElements(RepresentationMixin, object):
                 '    Right ascension of the ascending node (raan) = {raan:8.1f} deg\n'
                 '    Argument of perigee (arg_pe)                 = {arg_pe:8.1f} deg\n'
                 '    Mean anomaly at reference epoch (M0)         = {M0:8.1f} deg\n'
+                '    Period (T)                                   = {T}\n'
                 '    Reference epoch (ref_epoch)                  = {self.ref_epoch!s}\n'
                 '        Mean anomaly (M)                         = {M:8.1f} deg\n'
-                '        Time (t)                                 = {self.t:.1f} s\n'
+                '        Time (t)                                 = {t}\n'
                 '        Epoch (epoch)                            = {self.epoch!s}'
                 ).format(
                     name=self.__class__.__name__,
@@ -468,4 +462,6 @@ class KeplerianElements(RepresentationMixin, object):
                     raan=degrees(self.raan),
                     arg_pe=degrees(self.arg_pe),
                     M0=degrees(self.M0),
-                    M=degrees(self.M))
+                    M=degrees(self.M),
+                    T=timedelta(seconds=self.T),
+                    t=timedelta(seconds=self.t))

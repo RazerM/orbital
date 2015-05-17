@@ -1,5 +1,8 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function
+
+from datetime import timedelta
+
 from scipy.constants import kilo
 
 # IAU 2009 System of Astronomical Constants
@@ -21,22 +24,22 @@ saturn_mass  = sun_mass / 3.4979018e3
 uranus_mass  = sun_mass / 2.290298e4
 neptune_mass = sun_mass / 1.941226e4
 
-sun_radius_equatorial     = 696000 * kilo
-mercury_radius_equatorial = 2439.7 * kilo
-venus_radius_equatorial   = 6051.8 * kilo
+sun_radius_equatorial     = 696000    * kilo
+mercury_radius_equatorial = 2439.7    * kilo
+venus_radius_equatorial   = 6051.8    * kilo
 earth_radius_equatorial   = 6378.1366 * kilo
-mars_radius_equatorial    = 3396.19 * kilo
-jupiter_radius_equatorial = 71492 * kilo
-saturn_radius_equatorial  = 60268 * kilo
-uranus_radius_equatorial  = 25559 * kilo
-neptune_radius_equatorial = 24764 * kilo
+mars_radius_equatorial    = 3396.19   * kilo
+jupiter_radius_equatorial = 71492     * kilo
+saturn_radius_equatorial  = 60268     * kilo
+uranus_radius_equatorial  = 25559     * kilo
+neptune_radius_equatorial = 24764     * kilo
 
 mercury_mu = mercury_mass * constant_of_gravitation
-venus_mu = venus_mass * constant_of_gravitation
-mars_mu = mars_mass * constant_of_gravitation
+venus_mu   = venus_mass   * constant_of_gravitation
+mars_mu    = mars_mass    * constant_of_gravitation
 jupiter_mu = jupiter_mass * constant_of_gravitation
-saturn_mu = saturn_mass * constant_of_gravitation
-uranus_mu = uranus_mass * constant_of_gravitation
+saturn_mu  = saturn_mass  * constant_of_gravitation
+uranus_mu  = uranus_mass  * constant_of_gravitation
 neptune_mu = neptune_mass * constant_of_gravitation
 
 mercury_radius_polar = mercury_radius_mean = mercury_radius_equatorial
@@ -62,4 +65,4 @@ neptune_radius_mean  = 24622 * kilo
 neptune_radius_polar = 24341 * kilo
 
 # 4.1 s, 56 minutes, 23 hours
-earth_sidereal_day = 4.1 + 60 * (56 + 60 * 23)
+earth_sidereal_day = timedelta(hours=23, minutes=56, seconds=4.1).total_seconds()
