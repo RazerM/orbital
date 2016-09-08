@@ -152,11 +152,11 @@ class KeplerianElements(RepresentationMixin, object):
         return self
 
     @classmethod
-    def from_tle(cls, line1, line2, body):
+    def from_tle(cls, line1, line2, body, gravity_model=wgs72):
         """Create object by parsing TLE using SGP4."""
 
         # Get state vector at TLE epoch
-        sat = sgp4.io.twoline2rv(line1, line2, wgs72)
+        sat = sgp4.io.twoline2rv(line1, line2, gravity_model)
         r, v = sgp4.propagation.sgp4(sat, 0)
         ref_epoch = time.Time(sat.epoch, scale='utc')
 
