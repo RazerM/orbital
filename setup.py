@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import re
-import sys
 
-from setuptools import setup, Command, find_packages
+from setuptools import setup, find_packages
 
 
 INIT_FILE = 'orbital/__init__.py'
@@ -21,22 +20,6 @@ requires = ['numpy', 'scipy', 'astropy', 'matplotlib', 'represent>=1.3.0',
             'sgp4']
 
 
-class PyTest(Command):
-    """Allow 'python setup.py test' to run without first installing pytest"""
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import subprocess
-        import sys
-        errno = subprocess.call([sys.executable, 'runtests.py'])
-        raise SystemExit(errno)
-
 setup(
     name='OrbitalPy',
     version=VERSION,
@@ -46,7 +29,6 @@ setup(
     author_email=EMAIL,
     url='https://github.com/RazerM/orbital',
     packages=find_packages(),
-    cmdclass={'test': PyTest},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
