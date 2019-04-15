@@ -337,9 +337,13 @@ class KeplerianElements(ReprMixin, object):
             for apoapsis_name in self.body.apoapsis_names:
                 if attr == '{}_radius'.format(apoapsis_name):
                     return self.apocenter_radius
+                elif attr == '{}_altitude'.format(apoapsis_name):
+                    return self.apocenter_altitude
             for periapsis_name in self.body.periapsis_names:
                 if attr == '{}_radius'.format(periapsis_name):
                     return self.pericenter_radius
+                elif attr == '{}_altitude'.format(periapsis_name):
+                    return self.pericenter_altitude
         raise AttributeError(
             "'{name}' object has no attribute '{attr}'"
             .format(name=type(self).__name__, attr=attr))
@@ -384,6 +388,16 @@ class KeplerianElements(ReprMixin, object):
     @property
     def pericenter_radius(self):
         return (1 - self.e) * self.a
+
+    @property
+    def apocenter_altitude(self):
+        """Return apocenter altitude"""
+        return altitude_from_radius(self.apocenter_radius, self.body)
+
+    @property
+    def pericenter_altitude(self):
+        """Return pericenter altitude"""
+        return altitude_from_radius(self.pericenter_radius, self.body)
 
     @property
     def U(self):
