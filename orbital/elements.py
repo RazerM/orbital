@@ -55,7 +55,7 @@ class KeplerianElements(ReprMixin, object):
         self.ref_epoch = ref_epoch
 
         self._t = 0  # This is important because M := M0
-        
+
         super(KeplerianElements, self).__init__()
 
         super(KeplerianElements, self).__init__()
