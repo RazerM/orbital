@@ -58,8 +58,6 @@ class KeplerianElements(ReprMixin, object):
 
         super(KeplerianElements, self).__init__()
 
-        super(KeplerianElements, self).__init__()
-
     @classmethod
     def with_altitude(cls, altitude, body, e=0, i=0, raan=0, arg_pe=0, M0=0,
                       ref_epoch=J2000):
