@@ -9,7 +9,7 @@ import sgp4.io
 import sgp4.propagation
 from astropy import time
 from numpy import arctan, cos, degrees, sin, sqrt
-from represent import RepresentationMixin
+from represent import ReprMixin
 from scipy.constants import kilo, pi
 from sgp4.earth_gravity import wgs72
 
@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 
-class KeplerianElements(RepresentationMixin, object):
+class KeplerianElements(ReprMixin, object):
 
     """Defines an orbit using keplerian elements.
 
