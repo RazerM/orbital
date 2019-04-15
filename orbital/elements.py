@@ -383,10 +383,12 @@ class KeplerianElements(ReprMixin, object):
 
     @property
     def apocenter_radius(self):
+        """Return apocenter radius"""
         return (1 + self.e) * self.a
 
     @property
     def pericenter_radius(self):
+        """Return pericenter radius"""
         return (1 - self.e) * self.a
 
     @property
