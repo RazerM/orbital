@@ -140,15 +140,6 @@ class KeplerianElements(ReprMixin, object):
         self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
         assert self.M0 == oldM0
 
-        # Now check that the computed properties for position and velocity are
-        # reasonably close to the inputs.
-        # 1e-4 is a large uncertainty, but we don't want to throw an error
-        # within small differences (e.g. 1e-4 m is 0.1 mm)
-        if (abs(self.v - v) > 1e-4).any() or (abs(self.r - r) > 1e-4).any():
-            raise RuntimeError(
-                'Failed to set orbital elements for velocity. Please file a bug'
-                ' report at https://github.com/RazerM/orbital/issues')
-
         return self
 
     @classmethod
