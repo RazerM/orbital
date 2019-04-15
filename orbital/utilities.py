@@ -266,11 +266,11 @@ def elements_from_state_vector(r, v, mu):
     # momentum vector and its z component.
     i = acos(h.z / norm(h))
 
-    if abs(i - 0) < SMALL_NUMBER:
+    if abs(i) < SMALL_NUMBER:
         # For non-inclined orbits, raan is undefined;
         # set to zero by convention
         raan = 0
-        if abs(e - 0) < SMALL_NUMBER:
+        if abs(e) < SMALL_NUMBER:
             # For circular orbits, place periapsis
             # at ascending node by convention
             arg_pe = 0
@@ -289,8 +289,8 @@ def elements_from_state_vector(r, v, mu):
         # node and eccentricity vectors.
         arg_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
 
-    if abs(e - 0) < SMALL_NUMBER:
-        if abs(i - 0) < SMALL_NUMBER:
+    if abs(e) < SMALL_NUMBER:
+        if abs(i) < SMALL_NUMBER:
             # True anomaly is angle between position
             # vector and its x component.
             f = acos(r.x / norm(r))
