@@ -462,7 +462,7 @@ class Anomaly(object):
         elif self.key == 'E':
             return mean_anomaly_from_eccentric(e, self.anomaly)
         elif self.key == 'f':
-            return true_anomaly_from_eccentric(e, self.anomaly)
+            return mean_anomaly_from_true(e, self.anomaly)
 
     def E(self, e):
         if self.key == 'M':
