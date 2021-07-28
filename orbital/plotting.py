@@ -104,7 +104,7 @@ class Plotter2D():
 
         time_per_orbit = orbit.T / speedup
         interval = 1000 / 30
-        times = np.linspace(orbit.t, orbit.t + orbit.T, time_per_orbit * 30)
+        times = np.linspace(orbit.t, orbit.t + orbit.T, int(time_per_orbit * 30))
 
         def animate(i):
             orbit.t = times[i - 1]
@@ -133,7 +133,7 @@ class Plotter2D():
             f2 += 2 * pi
 
         num_points = self.points_per_rad * (f2 - f1)
-        f = np.linspace(f1, f2, num_points)
+        f = np.linspace(f1, f2, int(num_points))
 
         pos = self._perifocal_coords(orbit, f)
 
@@ -219,7 +219,7 @@ class Plotter3D(object):
         self.plot(orbit)
 
         num_points = self.points_per_rad * 2 * pi
-        f = np.linspace(0, 2 * pi, num_points)
+        f = np.linspace(0, 2 * pi, int(num_points))
 
         def fpos(f):
             U, _, _ = uvw_from_elements(orbit.i, orbit.raan, orbit.arg_pe, f)
@@ -229,7 +229,7 @@ class Plotter3D(object):
 
         time_per_orbit = orbit.T / speedup
         interval = 1000 / 30
-        times = np.linspace(orbit.t, orbit.t + orbit.T, time_per_orbit * 30)
+        times = np.linspace(orbit.t, orbit.t + orbit.T, int(time_per_orbit * 30))
 
         def animate(i):
             orbit.t = times[i - 1]
@@ -259,7 +259,7 @@ class Plotter3D(object):
             f2 += 2 * pi
 
         num_points = self.points_per_rad * (f2 - f1)
-        f = np.linspace(f1, f2, num_points)
+        f = np.linspace(f1, f2, int(num_points))
 
         pos = self._xyz_coords(orbit, f)
         x, y, z = pos[0, :], pos[1, :], pos[2, :]
