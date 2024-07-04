@@ -1,7 +1,7 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function
 
-from represent import RepresentationMixin
+from represent import autorepr
 
 from . import constants as oc
 
@@ -16,8 +16,8 @@ __all__ = [
     'neptune',
 ]
 
-
-class Body(RepresentationMixin, object):
+@autorepr
+class Body(object):
     r"""Reference body for a Keplerian orbit.
 
     :param float mass: Mass (:math:`m`) [kg]
@@ -70,7 +70,7 @@ class Body(RepresentationMixin, object):
             self._periapsis_names = value
 
     def __repr__(self):
-        # Intercept __repr__ from RepresentationMixin to
+        # Intercept __repr__ from autorepr to
         # use orbital.bodies.<planet> for the defaults.
         if __name__ == 'orbital.bodies':
             for name, instance in _defaults.items():
@@ -79,7 +79,7 @@ class Body(RepresentationMixin, object):
         return super(Body, self).__repr__()
 
     def _repr_pretty_(self, p, cycle):
-        # Intercept _repr_pretty_ from RepresentationMixin to
+        # Intercept _repr_pretty_ from autorepr to
         # use orbital.bodies.<planet> for the defaults.
         if __name__ == 'orbital.bodies':
             for name, instance in _defaults.items():
