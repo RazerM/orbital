@@ -49,6 +49,25 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
         self.assertUVWMatches(orbit)
 
+    def test_circular_arg_pe(self):
+        RADIUS = 10000000.0
+        orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=radians(45), M0=0.0, body=earth)
+        self.assertAlmostEqual(orbit.arg_pe, radians(45))
+        # The arg_pe gives the angle at the epoch, so these vectors should be
+        # rotated 45°.
+        numpy.testing.assert_almost_equal(orbit.r,
+            Position(RADIUS * 0.5 * sqrt(2), RADIUS * 0.5 * sqrt(2), 0))
+        numpy.testing.assert_almost_equal(orbit.v,
+            Velocity(-sqrt(earth.mu / RADIUS) * 0.5 * sqrt(2),
+                     sqrt(earth.mu / RADIUS) * 0.5 * sqrt(2),
+                     0))
+
+        numpy.testing.assert_almost_equal(orbit.U, np.array([0.5 * sqrt(2), 0.5 * sqrt(2), 0]))
+        numpy.testing.assert_almost_equal(orbit.V, np.array([-0.5 * sqrt(2), 0.5 * sqrt(2), 0]))
+        numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
+        self.assertUVWMatches(orbit)
+
     def test_anomaly_at_time(self):
         RADIUS = 10000000.0
         orbit = KeplerianElements(a=RADIUS, M0=radians(90), body=earth)
@@ -115,6 +134,41 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.fpa, 0.0)
         numpy.testing.assert_almost_equal(orbit.U, np.array([-1, 0, 0]))
         numpy.testing.assert_almost_equal(orbit.V, np.array([0, -1, 0]))
+        numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
+        self.assertUVWMatches(orbit)
+
+    def test_elliptical(self):
+        A = 10000000.0
+        orbit = KeplerianElements(a=A, e=0.75, i=0.0, raan=0.0, arg_pe=0.0,
+                                  M0=0.0, body=earth)
+        self.assertAlmostEqual(orbit.a, A)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.epoch, J2000)
+        self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.M, 0.0)
+        self.assertAlmostEqual(orbit.E, 0.0)
+        self.assertAlmostEqual(orbit.f, 0.0)
+
+        numpy.testing.assert_almost_equal(orbit.r, Position(2500000, 0, 0))
+        numpy.testing.assert_almost_equal(orbit.v, Velocity(0, 16703.901013, 0))
+
+        # Angular velocity and period are the same as for a circular orbit.
+        self.assertAlmostEqual(orbit.n, sqrt(earth.mu / A ** 3))
+        self.assertAlmostEqual(orbit.T, tau * sqrt(A ** 3 / earth.mu))
+        self.assertAlmostEqual(orbit.fpa, 0.0)
+
+        self.assertAlmostEqual(orbit.apocenter_radius, 17500000.0)
+        self.assertAlmostEqual(orbit.pericenter_radius, 2500000.0)
+        self.assertAlmostEqual(orbit.apocenter_altitude, 17500000.0 - earth.mean_radius)
+        self.assertAlmostEqual(orbit.pericenter_altitude, 2500000.0 - earth.mean_radius)
+
+        numpy.testing.assert_almost_equal(orbit.U, np.array([1, 0, 0]))
+        numpy.testing.assert_almost_equal(orbit.V, np.array([0, 1, 0]))
         numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
         self.assertUVWMatches(orbit)
 
