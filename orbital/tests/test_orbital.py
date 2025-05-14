@@ -1,13 +1,55 @@
-import math
+from math import sqrt, tau
 import unittest
 
+from astropy import time
+import numpy as np
 from numpy import radians
+import numpy.testing
 from orbital import earth, KeplerianElements, venus
-from orbital.utilities import mod
+from orbital.utilities import mod, Position, Velocity
 from scipy.constants import kilo
+
+J2000 = time.Time('J2000', scale='utc')
 
 
 class TestOrbitalElements(unittest.TestCase):
+
+    def test_circular(self):
+        RADIUS = 10000000.0
+        orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=0.0, body=earth)
+        self.assertAlmostEqual(orbit.a, RADIUS)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.epoch, J2000)
+        self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.M, 0.0)
+        self.assertAlmostEqual(orbit.E, 0.0)
+        self.assertAlmostEqual(orbit.f, 0.0)
+
+        numpy.testing.assert_almost_equal(orbit.r, Position(RADIUS, 0, 0))
+        numpy.testing.assert_almost_equal(orbit.v, Velocity(0, sqrt(earth.mu / RADIUS), 0))
+
+        # Manually calculate angular velocity and period of a circular orbit.
+        self.assertAlmostEqual(orbit.n, sqrt(earth.mu / RADIUS ** 3))
+        self.assertAlmostEqual(orbit.T, tau * sqrt(RADIUS ** 3 / earth.mu))
+        self.assertAlmostEqual(orbit.fpa, 0.0)
+
+        self.assertAlmostEqual(orbit.apocenter_radius, RADIUS)
+        self.assertAlmostEqual(orbit.pericenter_radius, RADIUS)
+        self.assertAlmostEqual(orbit.apocenter_altitude, RADIUS - earth.mean_radius)
+        self.assertAlmostEqual(orbit.pericenter_altitude, RADIUS - earth.mean_radius)
+
+        numpy.testing.assert_almost_equal(orbit.U, np.array([1, 0, 0]))
+        numpy.testing.assert_almost_equal(orbit.V, np.array([0, 1, 0]))
+        numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
+        numpy.testing.assert_almost_equal(orbit.UVW[0], orbit.U)
+        numpy.testing.assert_almost_equal(orbit.UVW[1], orbit.V)
+        numpy.testing.assert_almost_equal(orbit.UVW[2], orbit.W)
 
     def test_anomaly_at_time(self):
         orbit = KeplerianElements.with_period(90 * 60, e=0, body=earth)
