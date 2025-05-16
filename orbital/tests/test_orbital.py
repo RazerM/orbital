@@ -137,6 +137,42 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
         self.assertUVWMatches(orbit)
 
+    def test_zero(self):
+        orbit = KeplerianElements(a=0.0, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=0.0, body=earth)
+        self.assertAlmostEqual(orbit.a, 0.0)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.epoch, J2000)
+        self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.M, 0.0)
+        self.assertAlmostEqual(orbit.E, 0.0)
+        self.assertAlmostEqual(orbit.f, 0.0)
+
+        numpy.testing.assert_almost_equal(orbit.r, Position(0, 0, 0))
+        # XXX Arguably, v should be the zero vector.
+        self.assertRaises(ZeroDivisionError, lambda: orbit.v)
+
+        # XXX Arguably, n should be infinity.
+        self.assertRaises(ZeroDivisionError, lambda: orbit.n)
+        # XXX If n is infinity, T should be 0.0.
+        self.assertRaises(ZeroDivisionError, lambda: orbit.T)
+        self.assertAlmostEqual(orbit.fpa, 0.0)
+
+        self.assertAlmostEqual(orbit.apocenter_radius, 0.0)
+        self.assertAlmostEqual(orbit.pericenter_radius, 0.0)
+        self.assertAlmostEqual(orbit.apocenter_altitude, -earth.mean_radius)
+        self.assertAlmostEqual(orbit.pericenter_altitude, -earth.mean_radius)
+
+        numpy.testing.assert_almost_equal(orbit.U, np.array([1, 0, 0]))
+        numpy.testing.assert_almost_equal(orbit.V, np.array([0, 1, 0]))
+        numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
+        self.assertUVWMatches(orbit)
+
     def test_inclined(self):
         RADIUS = 10000000.0
         orbit = KeplerianElements(a=RADIUS, e=0.0, i=radians(45),
