@@ -628,6 +628,32 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.a, 15000000.0)
         self.assertAlmostEqual(orbit.e, 1.0 / 3.0)
 
+    def test_from_state_vector(self):
+        # Circular orbit.
+        RADIUS = 10000000.0
+        R = Position(RADIUS, 0, 0)
+        V = Velocity(0, sqrt(earth.mu / RADIUS), 0)
+
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, RADIUS)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        # TODO: A different position along the circular orbit.
+        # TODO: Inclined orbit.
+        # TODO: Elliptical orbit.
+        # TODO: Hyperbolic orbit.
+        # TODO: Parabolic orbit.
+        # TODO: r=0.
+        # TODO: Radial orbit (v aligned with r).
+        # TODO: Radial orbit (v=0).
+
     def assertUVWMatches(self, orbit):
         """Check that orbit's UVW matches U, V and W.
 
