@@ -73,6 +73,7 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements(a=RADIUS, M0=radians(90), body=earth)
         # For a circular orbit, all three anomalies are the same.
         # Test all of the properties that change with time.
+        self.assertAlmostEqual(orbit.epoch, J2000)
         self.assertAlmostEqual(orbit.t, 0.0)
         self.assertAlmostEqual(orbit.M, radians(90))
         self.assertAlmostEqual(orbit.E, radians(90))
@@ -87,6 +88,8 @@ class TestOrbitalElements(unittest.TestCase):
 
         # 1/4 of the way around.
         orbit.t = orbit.T * 0.25
+        self.assertAlmostEqual(orbit.epoch,
+                               J2000 + time.TimeDelta(orbit.T * 0.25, format='sec'))
         self.assertAlmostEqual(orbit.M, radians(180))
         self.assertAlmostEqual(orbit.E, radians(180))
         self.assertAlmostEqual(orbit.f, radians(180))
@@ -100,6 +103,8 @@ class TestOrbitalElements(unittest.TestCase):
 
         # 1/2 of the way around.
         orbit.t = orbit.T * 0.5
+        self.assertAlmostEqual(orbit.epoch,
+                               J2000 + time.TimeDelta(orbit.T * 0.5, format='sec'))
         self.assertAlmostEqual(orbit.M, radians(270))
         self.assertAlmostEqual(orbit.E, radians(270))
         self.assertAlmostEqual(orbit.f, radians(270))
@@ -113,6 +118,8 @@ class TestOrbitalElements(unittest.TestCase):
 
         # A full revolution around.
         orbit.t = orbit.T
+        self.assertAlmostEqual(orbit.epoch,
+                               J2000 + time.TimeDelta(orbit.T, format='sec'))
         self.assertAlmostEqual(orbit.M, radians(90))
         self.assertAlmostEqual(orbit.E, radians(90))
         self.assertAlmostEqual(orbit.f, radians(90))
@@ -126,6 +133,8 @@ class TestOrbitalElements(unittest.TestCase):
 
         # 5/4 of the way around.
         orbit.t = orbit.T * 1.25
+        self.assertAlmostEqual(orbit.epoch,
+                               J2000 + time.TimeDelta(orbit.T * 1.25, format='sec'))
         self.assertAlmostEqual(orbit.M, radians(180))
         self.assertAlmostEqual(orbit.E, radians(180))
         self.assertAlmostEqual(orbit.f, radians(180))
