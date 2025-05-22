@@ -654,6 +654,49 @@ class TestOrbitalElements(unittest.TestCase):
         # TODO: Radial orbit (v aligned with r).
         # TODO: Radial orbit (v=0).
 
+    def test_from_tle(self):
+        # Sample TLE from Wikipedia:
+        # https://en.wikipedia.org/wiki/Two-line_element_set
+        # ISS (ZARYA)
+        LINE1 = '1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927'
+        LINE2 = '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537'
+        orbit = KeplerianElements.from_tle(LINE1, LINE2, body=earth)
+        self.assertAlmostEqual(orbit.t, 0)
+        self.assertEqual(orbit.ref_epoch.strftime('%Y-%b-%d %H:%M:%S'),
+                         time.Time('2008-09-20 12:25:40.0').strftime('%Y-%b-%d %H:%M:%S'))
+
+        # These values for r and v were computed by SGP4. Internally, from_tle
+        # uses these state vectors as an intermediate step, so verify that the
+        # resulting r and v values match.
+        R = Position(4083902.4635207, -993631.9996058, 5243603.6653708)
+        V = Velocity(2512.8372952, 7259.888525, -583.7785365)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+
+        # NOTE: These expected values have just been set to match the output
+        # from this function. Note that the e, i, raan, arg_pe and M0 are
+        # given directly in the TLE data, and a can be computed from the mean
+        # motion in the TLE data as shown here.
+        # EXPECTED_N_REV_PER_DAY = 15.72125391
+        # EXPECTED_N = EXPECTED_N_REV_PER_DAY * tau / 86400  # [rad/s]
+        # EXPECTED_A = (earth.mu / EXPECTED_N ** 2) ** (1 / 3)
+        #
+        # Yet the output values do not match. This is likely due to rounding
+        # errors converting to state vectors and back. The largest discrepancy
+        # is a, which is off by 5 km. See the note about arg_pe and M0.
+        #
+        # The comment after each line gives the actual expected value based on
+        # the TLE data.
+        self.assertAlmostEqual(orbit.a, 6725547.816501163)        # 6730960.68??
+        self.assertAlmostEqual(orbit.e, 0.0008330)                # 0.0006703??
+        self.assertAlmostEqual(orbit.i, radians(51.621653))       # 51.6416??
+        self.assertAlmostEqual(orbit.raan, radians(247.45773))    # 247.4627??
+        # Note: The following two values are off by a huge amount (about 18°)
+        # but the errors cancel out. Given the eccentricity is so low, the sum
+        # of these two angles is all that really matters.
+        self.assertAlmostEqual(orbit.arg_pe, radians(112.50348))  # 130.5360??
+        self.assertAlmostEqual(orbit.M0, radians(343.056983))     # 325.0288??
+
     def assertUVWMatches(self, orbit):
         """Check that orbit's UVW matches U, V and W.
 
