@@ -443,10 +443,20 @@ class TestOrbitalElements(unittest.TestCase):
         orbit.propagate_anomaly_to(M=radians(40))
         self.assertAlmostEqual(orbit.M, radians(40))
 
-    def test_period(self):
+    def test_with_period(self):
         orbit = KeplerianElements.with_period(2 * 60 * 60, M0=radians(35), body=earth)
         self.assertAlmostEqual(orbit.T, 2 * 60 * 60)
 
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 8058997.3045416)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, radians(35))
+
+        # TODO: These should be part of separate tests, as they have nothing to
+        # do with with_period.
         # Propagate to set t nonzero to test M0 fix when a is set.
         orbit.propagate_anomaly_by(M=radians(10))
 
