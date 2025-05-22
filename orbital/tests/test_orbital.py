@@ -26,6 +26,10 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, 0.0)
 
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
         self.assertAlmostEqual(orbit.epoch, J2000)
         self.assertAlmostEqual(orbit.t, 0.0)
         self.assertAlmostEqual(orbit.M, 0.0)
@@ -464,6 +468,10 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, 0.0)
 
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
         # Elliptical orbit.
         orbit = KeplerianElements.with_altitude(ALTITUDE, e=0.75, body=earth)
         self.assertAlmostEqual(norm(orbit.r), ALTITUDE + earth.mean_radius)
@@ -494,6 +502,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.raan, 0.0)
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, radians(35))
+        self.assertAlmostEqual(orbit.t, 0.0)
 
         # Hyperbolic orbit.
         orbit = KeplerianElements.with_altitude(ALTITUDE, e=1.25, body=earth)
@@ -541,6 +550,10 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, radians(35))
 
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
         # TODO: These should be part of separate tests, as they have nothing to
         # do with with_period.
         # Propagate to set t nonzero to test M0 fix when a is set.
@@ -570,6 +583,10 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.raan, 0.0)
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
 
         # Elliptical orbit.
         orbit = KeplerianElements.with_apside_altitudes(10000.0, 38296000.0, body=earth)
@@ -606,6 +623,10 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.raan, 0.0)
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
 
         # Elliptical orbit.
         orbit = KeplerianElements.with_apside_radii(10000000.0, 20000000.0, body=earth)
@@ -644,6 +665,10 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.raan, 0.0)
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
 
         # ISS (Zarya) from 2008-09-20 12:25:40
         # Source: SGP4 parsed TLE example from
