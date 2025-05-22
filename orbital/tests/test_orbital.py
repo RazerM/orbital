@@ -556,6 +556,78 @@ class TestOrbitalElements(unittest.TestCase):
         orbit.propagate_anomaly_to(M=radians(40))
         self.assertAlmostEqual(orbit.M, radians(40))
 
+    def test_with_apside_altitudes(self):
+        # Circular orbit.
+        orbit = KeplerianElements.with_apside_altitudes(10000.0, 10000.0, body=earth)
+        self.assertAlmostEqual(orbit.apocenter_radius, 10000.0 + earth.mean_radius)
+        self.assertAlmostEqual(orbit.pericenter_radius, 10000.0 + earth.mean_radius)
+        self.assertAlmostEqual(orbit.apocenter_altitude, 10000.0)
+        self.assertAlmostEqual(orbit.pericenter_altitude, 10000.0)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 10000.0 + earth.mean_radius)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        # Elliptical orbit.
+        orbit = KeplerianElements.with_apside_altitudes(10000.0, 38296000.0, body=earth)
+        self.assertAlmostEqual(orbit.apocenter_radius, 38296000.0 + earth.mean_radius)
+        self.assertAlmostEqual(orbit.pericenter_radius, 10000.0 + earth.mean_radius)
+        self.assertAlmostEqual(orbit.apocenter_altitude, 38296000.0)
+        self.assertAlmostEqual(orbit.pericenter_altitude, 10000.0)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 25524000.0)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        # Elliptical orbit, arguments reversed (should make no difference).
+        orbit = KeplerianElements.with_apside_altitudes(38296000.0, 10000.0, body=earth)
+        self.assertAlmostEqual(orbit.apocenter_altitude, 38296000.0)
+        self.assertAlmostEqual(orbit.pericenter_altitude, 10000.0)
+        self.assertAlmostEqual(orbit.a, 25524000.0)
+        self.assertAlmostEqual(orbit.e, 0.75)
+
+    def test_with_apside_radii(self):
+        # Circular orbit.
+        orbit = KeplerianElements.with_apside_radii(10000000.0, 10000000.0, body=earth)
+        self.assertAlmostEqual(orbit.apocenter_radius, 10000000.0)
+        self.assertAlmostEqual(orbit.pericenter_radius, 10000000.0)
+        self.assertAlmostEqual(orbit.apocenter_altitude, 10000000.0 - earth.mean_radius)
+        self.assertAlmostEqual(orbit.pericenter_altitude, 10000000.0 - earth.mean_radius)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 10000000.0)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        # Elliptical orbit.
+        orbit = KeplerianElements.with_apside_radii(10000000.0, 20000000.0, body=earth)
+        self.assertAlmostEqual(orbit.apocenter_radius, 20000000.0)
+        self.assertAlmostEqual(orbit.pericenter_radius, 10000000.0)
+        self.assertAlmostEqual(orbit.apocenter_altitude, 20000000.0 - earth.mean_radius)
+        self.assertAlmostEqual(orbit.pericenter_altitude, 10000000.0 - earth.mean_radius)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 15000000.0)
+        self.assertAlmostEqual(orbit.e, 1.0 / 3.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        # Elliptical orbit, arguments reversed (should make no difference).
+        orbit = KeplerianElements.with_apside_radii(20000000.0, 10000000.0, body=earth)
+        self.assertAlmostEqual(orbit.apocenter_radius, 20000000.0)
+        self.assertAlmostEqual(orbit.pericenter_radius, 10000000.0)
+        self.assertAlmostEqual(orbit.a, 15000000.0)
+        self.assertAlmostEqual(orbit.e, 1.0 / 3.0)
+
     def assertUVWMatches(self, orbit):
         """Check that orbit's UVW matches U, V and W.
 
