@@ -645,6 +645,18 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, 0.0)
 
+        # ISS (Zarya) from 2008-09-20 12:25:40
+        # Source: SGP4 parsed TLE example from
+        # https://en.wikipedia.org/wiki/Two-line_element_set
+        # (This is the same state vector used by test_from_tle below.)
+        # Used as a real-world smoke test, just ensure that the vectors
+        # round-trip.
+        R = Position(4083902.4635207, -993631.9996058, 5243603.6653708)
+        V = Velocity(2512.8372952, 7259.888525, -583.7785365)
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+
         # TODO: A different position along the circular orbit.
         # TODO: Inclined orbit.
         # TODO: Elliptical orbit.
