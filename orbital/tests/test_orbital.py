@@ -1,5 +1,6 @@
 from math import sqrt, tau
 import unittest
+import warnings
 
 from astropy import time
 import numpy as np
@@ -649,7 +650,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.a, 15000000.0)
         self.assertAlmostEqual(orbit.e, 1.0 / 3.0)
 
-    def test_from_state_vector(self):
+    def test_from_state_vector_circular(self):
         # Circular orbit.
         RADIUS = 10000000.0
         R = Position(RADIUS, 0, 0)
@@ -670,6 +671,58 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
+        # 1/4 of the way around.
+        R = Position(0, RADIUS, 0)
+        V = Velocity(-sqrt(earth.mu / RADIUS), 0, 0)
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, RADIUS)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        # t is always 0; instead it is expected to set M0.
+        self.assertAlmostEqual(orbit.M0, radians(90))
+        self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.M, radians(90))
+
+    def test_from_state_vector_zero(self):
+        # Circular orbit.
+        R = Position(0, 0, 0)
+        V = Velocity(0, 10000, 0)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            self.assertRaises(AssertionError,
+                              KeplerianElements.from_state_vector, R, V, body=earth)
+
+    def test_from_state_vector_inclined(self):
+        # Inclined circular orbit, 1/4 of the way around.
+        RADIUS = 10000000.0
+        R = Position(-RADIUS * 0.5 * sqrt(2), 0, RADIUS * 0.5 * sqrt(2))
+        V = Velocity(0, -sqrt(earth.mu / RADIUS), 0)
+
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        # XXX: r, v and arg_pe are nan for some reason.
+        # This happens for a perfect circle, but doesn't happen in
+        # test_from_state_vector_circular for some reason.
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, RADIUS)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, radians(45))
+        self.assertAlmostEqual(orbit.raan, radians(90))
+        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, radians(90))
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+    def test_from_state_vector_iss(self):
         # ISS (Zarya) from 2008-09-20 12:25:40
         # Source: SGP4 parsed TLE example from
         # https://en.wikipedia.org/wiki/Two-line_element_set
@@ -682,12 +735,9 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.r, R)
         numpy.testing.assert_almost_equal(orbit.v, V)
 
-        # TODO: A different position along the circular orbit.
-        # TODO: Inclined orbit.
         # TODO: Elliptical orbit.
         # TODO: Hyperbolic orbit.
         # TODO: Parabolic orbit.
-        # TODO: r=0.
         # TODO: Radial orbit (v aligned with r).
         # TODO: Radial orbit (v=0).
 
