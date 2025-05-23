@@ -339,7 +339,7 @@ class TestOrbitalElements(unittest.TestCase):
         #self.assertAlmostEqual(orbit.f, 0.0)
 
         #numpy.testing.assert_almost_equal(orbit.r, Position(2500000, 0, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(0, 3.0, 0))
+        #numpy.testing.assert_almost_equal(orbit.v, Velocity(0, 18940.443359375, 0.0))
 
         # Angular velocity and period are the same as for a circular orbit.
         #self.assertAlmostEqual(orbit.n, sqrt(earth.mu / A ** 3))
@@ -368,7 +368,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.E, 0.0)
         #self.assertAlmostEqual(orbit.f, 0.0)
         #numpy.testing.assert_almost_equal(orbit.r, Position(2500000, 0, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(0, 3.0, 0))
+        #numpy.testing.assert_almost_equal(orbit.v, Velocity(0, 18940.443359375, 0.0))
         #self.assertAlmostEqual(orbit.fpa, 0.0)
         #numpy.testing.assert_almost_equal(orbit.U, np.array([1, 0, 0]))
         #numpy.testing.assert_almost_equal(orbit.V, np.array([0, 1, 0]))
@@ -376,12 +376,12 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertUVWMatches(orbit)
 
         # At f = 90°.
-        orbit.t = 2443528.1944  # Calculated to get f = 90°.
+        orbit.t = 387.0334193  # Calculated to get f = 90°.
         #self.assertAlmostEqual(orbit.M, 0.2443528194)
         #self.assertAlmostEqual(orbit.E, 0.6931471806)
         #self.assertAlmostEqual(orbit.f, radians(90))
-        #numpy.testing.assert_almost_equal(orbit.r, Position(0, 562500, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(-4.0/3.0, 5.0/3.0, 0))
+        #numpy.testing.assert_almost_equal(orbit.r, Position(0, 5625000, 0))
+        #numpy.testing.assert_almost_equal(orbit.v, Velocity(-8417.974609, 10522.468750, 0.0))
         #self.assertAlmostEqual(orbit.fpa, radians(0.8960553846))
         #numpy.testing.assert_almost_equal(orbit.U, np.array([0, 1, 0]))
         #numpy.testing.assert_almost_equal(orbit.V, np.array([-1, 0, 0]))
@@ -389,12 +389,12 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertUVWMatches(orbit)
 
         # At f = -90°.
-        orbit.t = -2443528.1944  # Calculated to get f = -90°.
+        orbit.t = -387.0334193  # Calculated to get f = -90°.
         #self.assertAlmostEqual(orbit.M, -0.2443528194)
         #self.assertAlmostEqual(orbit.E, -0.6931471806)
         #self.assertAlmostEqual(orbit.f, radians(-90))
-        #numpy.testing.assert_almost_equal(orbit.r, Position(0, -562500, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(4.0/3.0, 5.0/3.0, 0))
+        #numpy.testing.assert_almost_equal(orbit.r, Position(0, -5625000, 0))
+        #numpy.testing.assert_almost_equal(orbit.v, Velocity(8417.974609, 10522.468750, 0.0))
         #self.assertAlmostEqual(orbit.fpa, radians(0.8960553846))
         #numpy.testing.assert_almost_equal(orbit.U, np.array([0, -1, 0]))
         #numpy.testing.assert_almost_equal(orbit.V, np.array([1, 0, 0]))
@@ -402,12 +402,12 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertUVWMatches(orbit)
 
         # At M > tau (test that it is not mod-tau).
-        orbit.t = 80000000.0
+        orbit.t = 12671.29784
         #self.assertAlmostEqual(orbit.M, 8.0)
         #self.assertAlmostEqual(orbit.E, 2.858)
         #self.assertAlmostEqual(orbit.f, radians(138.998))
         #numpy.testing.assert_almost_equal(orbit.r, Position(-749394, 651493, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(-0.875, 0.660, 0.0))
+        #numpy.testing.assert_almost_equal(orbit.v, Velocity(-5522.950684, 4169.570312, 0.0))
         #self.assertAlmostEqual(orbit.fpa, radians(86.049))
         #numpy.testing.assert_almost_equal(orbit.U, np.array([-1, 1, 0]))  # XXX figure this out
         #numpy.testing.assert_almost_equal(orbit.V, np.array([-1, 1, 0]))  # XXX figure this out
