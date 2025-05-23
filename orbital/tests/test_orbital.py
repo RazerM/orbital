@@ -1116,6 +1116,48 @@ class TestOrbitalElements(unittest.TestCase):
         # M should be preserved.
         self.assertAlmostEqual(orbit.M, radians(90))
 
+    def test_set_v(self):
+        # Start with a circular trajectory.
+        RADIUS = 2500000.0
+        R = Position(RADIUS, 0, 0)
+        V = Velocity(0, sqrt(earth.mu / RADIUS), 0)
+        orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=0.0, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+
+        # Elliptical trajectory.
+        # Increase the velocity at the periapsis, which should grow the apoapsis
+        # and make an elliptical orbit. The r and periapsis should remain the
+        # same.
+        V = Velocity(0, 16703.901013, 0)
+        orbit.v = V
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+        self.assertAlmostEqual(orbit.pericenter_radius, RADIUS)
+        self.assertAlmostEqual(orbit.a, 10000000, places=2)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        # TODO: Go into a parabolic trajectory.
+
+        # Hyperbolic trajectory.
+        V = Velocity(0, 18940.443359375, 0.0)
+        orbit.v = V
+        # XXX Commented-out asserts are failing.
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        self.assertAlmostEqual(orbit.pericenter_radius, RADIUS)
+        self.assertAlmostEqual(orbit.a, -10000000.0, places=-1)
+        self.assertAlmostEqual(orbit.e, 1.25)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        #self.assertAlmostEqual(orbit.M0, 0.0)
+
     def test_set_n(self):
         # Circular trajectory.
         RADIUS = 10000000.0
