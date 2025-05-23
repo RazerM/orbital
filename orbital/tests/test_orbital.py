@@ -9,6 +9,7 @@ from numpy.linalg import norm
 import numpy.testing
 from orbital import earth, KeplerianElements, venus
 from orbital.utilities import mod, Position, Velocity
+from orbital.utilities import OrbitalWarning, ConvergenceError
 from scipy.constants import kilo
 
 J2000 = time.Time('J2000', scale='utc')
@@ -275,6 +276,36 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.V, np.array([0, 1, 0]))
         numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
         self.assertUVWMatches(orbit)
+
+    def test_elliptical_extreme_e(self):
+        A = 500.0
+        e = 0.99999999
+        orbit = KeplerianElements(a=A, e=e, i=0.0, raan=0.0, arg_pe=0.0,
+                                  M0=0.0, body=earth)
+        self.assertAlmostEqual(orbit.a, A)
+        self.assertAlmostEqual(orbit.e, e)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.epoch, J2000)
+        self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.M, 0.0)
+        self.assertAlmostEqual(orbit.E, 0.0)
+        self.assertAlmostEqual(orbit.f, 0.0)
+
+        # Problem case: e is very close to 1.0 and M is very close to 360°.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.M = radians(359.9)
+        self.assertAlmostEqual(orbit.M, radians(359.9))
+        # XXX This should produce the results below (it does if
+        # utilities.MAX_ITERATIONS is set to 100000), but instead it fails to
+        # converge in 100 iterations.
+        self.assertRaises(ConvergenceError, lambda: orbit.E)
+        #self.assertAlmostEqual(orbit.E, radians(347.454759))
+        #self.assertAlmostEqual(orbit.f, radians(180.073718))
 
     def test_elliptical_times(self):
         A = 10000000.0
