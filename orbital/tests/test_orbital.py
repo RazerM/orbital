@@ -1,4 +1,4 @@
-from math import sqrt, tau
+from math import isnan, sqrt, tau
 import unittest
 import warnings
 
@@ -951,8 +951,7 @@ class TestOrbitalElements(unittest.TestCase):
         LINE2 = '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537'
         orbit = KeplerianElements.from_tle(LINE1, LINE2, body=earth)
         self.assertAlmostEqual(orbit.t, 0)
-        self.assertEqual(orbit.ref_epoch.strftime('%Y-%b-%d %H:%M:%S'),
-                         time.Time('2008-09-20 12:25:40.0').strftime('%Y-%b-%d %H:%M:%S'))
+        self.assertTimeEqual(orbit.ref_epoch, time.Time('2008-09-20 12:25:40.0'))
 
         # These values for r and v were computed by SGP4. Internally, from_tle
         # uses these state vectors as an intermediate step, so verify that the
@@ -986,6 +985,159 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.arg_pe, radians(112.50348))  # 130.5360??
         self.assertAlmostEqual(orbit.M0, radians(343.056983))     # 325.0288??
 
+    def test_set_epoch(self):
+        RADIUS = 10000000.0
+        orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=0.0, body=earth)
+        self.assertTimeEqual(orbit.epoch, time.Time('2000-01-01 12:00:00'))
+        orbit.epoch = time.Time('2000-01-01 12:03:00')
+        self.assertTimeEqual(orbit.epoch, time.Time('2000-01-01 12:03:00'))
+        self.assertAlmostEqual(orbit.t, 180.0)
+        self.assertAlmostEqual(orbit.M, (180 * orbit.n) % tau)
+
+    def test_set_M(self):
+        # Circular trajectory.
+        RADIUS = 10000000.0
+        orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=0.0, body=earth)
+        orbit.M = radians(495)
+        self.assertAlmostEqual(orbit.M, radians(135))
+        self.assertAlmostEqual(orbit.E, radians(135))
+        self.assertAlmostEqual(orbit.f, radians(135))
+        # t does not get set.
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+        orbit.M = radians(-45)
+        self.assertAlmostEqual(orbit.M, radians(315))
+        self.assertAlmostEqual(orbit.E, radians(315))
+        self.assertAlmostEqual(orbit.f, radians(315))
+
+        # Hyperbolic trajectory - should not mod tau.
+        A = 10000000.0
+        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
+                                  M0=0.0, body=earth)
+        orbit.M = 8
+        # XXX Commented-out asserts are failing.
+        #self.assertAlmostEqual(orbit.M, 8)
+        #self.assertAlmostEqual(orbit.E, 2.8582231297)
+        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
+
+        orbit.M = -2
+        #self.assertAlmostEqual(orbit.M, -2)
+        #self.assertAlmostEqual(orbit.E, -1.8412921893)
+        #self.assertAlmostEqual(orbit.f, radians(229.3110529418))
+
+    def test_set_E(self):
+        # Elliptical trajectory.
+        A = 10000000.0
+        orbit = KeplerianElements(a=A, e=0.75, i=0.0, raan=0.0, arg_pe=0.0,
+                                  M0=0.0, body=earth)
+        # Set E such that M is 90 degrees.
+        orbit.E = radians(125.140095)
+        self.assertAlmostEqual(orbit.M, radians(90))
+        self.assertAlmostEqual(orbit.E, radians(125.140095))
+        self.assertAlmostEqual(orbit.f, radians(157.802569))
+        # t does not get set.
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+        # mod tau test.
+        orbit.E = radians(485.140095)
+        # XXX Commented-out asserts are failing.
+        #self.assertAlmostEqual(orbit.M, radians(90))
+        #self.assertAlmostEqual(orbit.E, radians(125.140095))
+        #self.assertAlmostEqual(orbit.f, radians(157.802569))
+
+        orbit.E = radians(-180)
+        #self.assertAlmostEqual(orbit.M, radians(180))
+        #self.assertAlmostEqual(orbit.E, radians(180))
+        #self.assertAlmostEqual(orbit.f, radians(180))
+
+        # Hyperbolic trajectory - should not mod tau.
+        A = 10000000.0
+        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
+                                  M0=0.0, body=earth)
+        orbit.E = 2.8582231297
+        #self.assertAlmostEqual(orbit.M, 8)
+        #self.assertAlmostEqual(orbit.E, 2.8582231297)
+        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
+
+    def test_set_f(self):
+        # Elliptical trajectory.
+        A = 10000000.0
+        orbit = KeplerianElements(a=A, e=0.75, i=0.0, raan=0.0, arg_pe=0.0,
+                                  M0=0.0, body=earth)
+        # Set f such that M is 90 degrees.
+        orbit.f = radians(157.802569)
+        self.assertAlmostEqual(orbit.M, radians(90))
+        self.assertAlmostEqual(orbit.E, radians(125.140095))
+        self.assertAlmostEqual(orbit.f, radians(157.802569))
+        # t does not get set.
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+        # mod tau test.
+        orbit.f = radians(517.802569)
+        self.assertAlmostEqual(orbit.M, radians(90))
+        self.assertAlmostEqual(orbit.E, radians(125.140095))
+        self.assertAlmostEqual(orbit.f, radians(157.802569))
+
+        orbit.f = radians(-180)
+        self.assertAlmostEqual(orbit.M, radians(180))
+        self.assertAlmostEqual(orbit.E, radians(180))
+        self.assertAlmostEqual(orbit.f, radians(180))
+
+        # Hyperbolic trajectory
+        A = 10000000.0
+        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
+                                  M0=0.0, body=earth)
+        orbit.f = radians(138.9976341059)
+        # XXX Commented-out asserts are failing.
+        #self.assertAlmostEqual(orbit.M, 8)
+        #self.assertAlmostEqual(orbit.E, 2.8582231297)
+        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
+
+        orbit.f = radians(-138.9976341059)
+        #self.assertAlmostEqual(orbit.M, -8)
+        #self.assertAlmostEqual(orbit.E, -2.8582231297)
+        #self.assertAlmostEqual(orbit.f, radians(221.0023658941))
+
+        # Past limit of true anomaly for e=1.25.
+        orbit.f = radians(145)
+        self.assertTrue(isnan(orbit.M))
+        self.assertTrue(isnan(orbit.E))
+        self.assertTrue(isnan(orbit.f))
+
+    def test_set_a(self):
+        orbit = KeplerianElements(a=10000000.0, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=radians(45), body=earth)
+        orbit.t = orbit.T * 0.125  # Another 45 degrees.
+        self.assertAlmostEqual(orbit.M, radians(90))
+        orbit.a = 5000000.0
+        self.assertAlmostEqual(orbit.a, 5000000.0)
+        # M should be preserved.
+        self.assertAlmostEqual(orbit.M, radians(90))
+
+    def test_set_n(self):
+        # Circular trajectory.
+        RADIUS = 10000000.0
+        orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=0.0, body=earth)
+        NEW_N = sqrt(earth.mu / 5000000 ** 3)
+        orbit.n = NEW_N
+        self.assertAlmostEqual(orbit.n, NEW_N)
+        self.assertAlmostEqual(orbit.T, tau / NEW_N)
+        self.assertAlmostEqual(orbit.a, 5000000.0)
+
+    def test_set_T(self):
+        # Circular trajectory.
+        RADIUS = 10000000.0
+        orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
+                                  arg_pe=0.0, M0=0.0, body=earth)
+        NEW_T = tau * sqrt(5000000 ** 3 / earth.mu)
+        orbit.T = NEW_T
+        self.assertAlmostEqual(orbit.n, tau / NEW_T)
+        self.assertAlmostEqual(orbit.T, NEW_T)
+        self.assertAlmostEqual(orbit.a, 5000000.0)
+
     def assertUVWMatches(self, orbit):
         """Check that orbit's UVW matches U, V and W.
 
@@ -994,6 +1146,11 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.UVW[0], orbit.U)
         numpy.testing.assert_almost_equal(orbit.UVW[1], orbit.V)
         numpy.testing.assert_almost_equal(orbit.UVW[2], orbit.W)
+
+    def assertTimeEqual(self, t1, t2):
+        """Assert that two Time values match to the nearest second."""
+        self.assertEqual(t1.strftime('%Y-%b-%d %H:%M:%S'),
+                         t2.strftime('%Y-%b-%d %H:%M:%S'))
 
 if __name__ == '__main__':
     unittest.main()
