@@ -435,8 +435,8 @@ class TestOrbitalElements(unittest.TestCase):
         # At M > tau (test that it is not mod-tau).
         orbit.t = 12671.29784
         #self.assertAlmostEqual(orbit.M, 8.0)
-        #self.assertAlmostEqual(orbit.E, 2.858)
-        #self.assertAlmostEqual(orbit.f, radians(138.998))
+        #self.assertAlmostEqual(orbit.E, 2.8582231297)
+        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
         #numpy.testing.assert_almost_equal(orbit.r, Position(-749394, 651493, 0))
         #numpy.testing.assert_almost_equal(orbit.v, Velocity(-5522.950684, 4169.570312, 0.0))
         #self.assertAlmostEqual(orbit.fpa, radians(86.049))
