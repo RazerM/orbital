@@ -722,6 +722,42 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
+    def test_from_state_vector_elliptical(self):
+        # Elliptical orbit, at periapsis.
+        R = Position(2500000, 0, 0)
+        V = Velocity(0, 16703.9010129, 0)
+
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+        # Elliptical orbit, 1/4 of the period elapsed.
+        R = Position(-13255776.4031414, 5408888.899183, 0)
+        V = Velocity(-3606.1267047, -1678.8615886, 0)
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R, decimal=4)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, radians(90))
+        self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.M, radians(90))
+
     def test_from_state_vector_iss(self):
         # ISS (Zarya) from 2008-09-20 12:25:40
         # Source: SGP4 parsed TLE example from
@@ -735,10 +771,10 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.r, R)
         numpy.testing.assert_almost_equal(orbit.v, V)
 
-        # TODO: Elliptical orbit.
         # TODO: Hyperbolic orbit.
         # TODO: Parabolic orbit.
         # TODO: Radial orbit (v aligned with r).
+        # TODO: Radial orbit (r=0, v != 0).
         # TODO: Radial orbit (v=0).
 
     def test_from_tle(self):
