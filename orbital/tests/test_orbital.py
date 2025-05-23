@@ -8,6 +8,7 @@ from numpy import radians
 from numpy.linalg import norm
 import numpy.testing
 from orbital import earth, KeplerianElements, venus
+from orbital.bodies import Body
 from orbital.utilities import mod, Position, Velocity
 from orbital.utilities import OrbitalWarning, ConvergenceError
 from scipy.constants import kilo
@@ -719,6 +720,26 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.t, 0.0)
         self.assertAlmostEqual(orbit.M, radians(90))
 
+    def test_from_state_vector_wrong_angle(self):
+        # Test case for a fairly normal (low-eccentricity) elliptical orbit
+        # where the resulting r and v is completely different to the inputs.
+        # (Found by just playing around in a simulator.)
+        # Test the exact same inputs as the test_set_v_wrong_angle case below,
+        # but use the from_state_vector method instead.
+        body = Body(
+            mass=1000.0,
+            mu=10000000.0,
+            mean_radius=200.0,
+            equatorial_radius=200.0,
+            polar_radius=200.0,
+        )
+        R = Position(284.3493564, -95.6360642, 0.0)
+        V = Velocity(61.6080284118652, 179.734466552734, 0.0)
+        orbit = KeplerianElements.from_state_vector(R, V, body=body)
+        # XXX These do not match (off by hundreds of units).
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+
     def test_from_state_vector_zero(self):
         # Degenerate orbit with r=0 and v=0.
         R = Position(0, 0, 0)
@@ -1157,6 +1178,34 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.raan, 0.0)
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         #self.assertAlmostEqual(orbit.M0, 0.0)
+
+    def test_set_v_wrong_angle(self):
+        # Using the v setter to test the same case as
+        # test_from_state_vector_wrong_angle.
+        # This case shows the initial elements that were used when this case was
+        # first discovered in the simulator. (Note that such cases are fairly
+        # common, though in the minority.)
+        body = Body(
+            mass=1000.0,
+            mu=10000000.0,
+            mean_radius=200.0,
+            equatorial_radius=200.0,
+            polar_radius=200.0,
+        )
+        orbit = KeplerianElements(a=255.685775984803, e=0.17332047224045, i=0.0,
+                                  raan=0.0, arg_pe=radians(161.41051062999333),
+                                  M0=radians(180), body=body)
+        R = Position(284.3493564, -95.6360642, 0.0)  # Derived from above.
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        V = Velocity(61.6080284118652, 179.734466552734, 0.0)
+        def set_v(value):
+            orbit.v = value
+        # XXX The 'r and v changed' detection logic is triggered in this case,
+        # causing a RuntimeError to be raised. If this was not raised, the
+        # following asserts would be wildly off.
+        self.assertRaises(RuntimeError, set_v, V)
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
 
     def test_set_n(self):
         # Circular trajectory.
