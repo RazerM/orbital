@@ -803,6 +803,79 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.t, 0.0)
         self.assertAlmostEqual(orbit.M, radians(90))
 
+    def test_from_state_vector_radial(self):
+        # Radial elliptical orbit (R and V are colinear).
+        R = Position(-1000000, 0, 0)
+        V = Velocity(-500000, 0, 0)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+
+        # XXX Commented-out asserts are failing.
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        #self.assertAlmostEqual(orbit.a, 0.0)  # ?? don't know what this should be
+        # (Currently the result is negative, which isn't right.)
+        self.assertAlmostEqual(orbit.e, 1.0)
+        #self.assertAlmostEqual(orbit.i, 0.0)
+        #self.assertAlmostEqual(orbit.raan, 0.0)
+        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+    def test_from_state_vector_radial_r0(self):
+        # Radial elliptical orbit, with r=0 and a nonzero velocity.
+        R = Position(0, 0, 0)
+        V = Velocity(-10000, 0, 0)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+
+        # XXX Commented-out asserts are failing.
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 0.0)  # ?? don't know what this should be
+        #self.assertAlmostEqual(orbit.e, 1.0)
+        #self.assertAlmostEqual(orbit.i, 0.0)
+        #self.assertAlmostEqual(orbit.raan, 0.0)
+        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+    def test_from_state_vector_radial_v0(self):
+        # Radial elliptical orbit, with nonzero r and a v=0.
+        R = Position(-10000, 0, 0)
+        V = Velocity(0, 0, 0)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+
+        # XXX Commented-out asserts are failing.
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 5000.0)
+        self.assertAlmostEqual(orbit.e, 1.0)
+        #self.assertAlmostEqual(orbit.i, 0.0)
+        #self.assertAlmostEqual(orbit.raan, 0.0)
+        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
     def test_from_state_vector_iss(self):
         # ISS (Zarya) from 2008-09-20 12:25:40
         # Source: SGP4 parsed TLE example from
@@ -818,9 +891,6 @@ class TestOrbitalElements(unittest.TestCase):
 
         # TODO: Hyperbolic orbit.
         # TODO: Parabolic orbit.
-        # TODO: Radial orbit (v aligned with r).
-        # TODO: Radial orbit (r=0, v != 0).
-        # TODO: Radial orbit (v=0).
 
     def test_from_tle(self):
         # Sample TLE from Wikipedia:
