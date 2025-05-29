@@ -720,26 +720,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.t, 0.0)
         self.assertAlmostEqual(orbit.M, radians(90))
 
-    def test_from_state_vector_wrong_angle(self):
-        # Test case for a fairly normal (low-eccentricity) elliptical orbit
-        # where the resulting r and v is completely different to the inputs.
-        # (Found by just playing around in a simulator.)
-        # Test the exact same inputs as the test_set_v_wrong_angle case below,
-        # but use the from_state_vector method instead.
-        body = Body(
-            mass=1000.0,
-            mu=10000000.0,
-            mean_radius=200.0,
-            equatorial_radius=200.0,
-            polar_radius=200.0,
-        )
-        R = Position(284.3493564, -95.6360642, 0.0)
-        V = Velocity(61.6080284118652, 179.734466552734, 0.0)
-        orbit = KeplerianElements.from_state_vector(R, V, body=body)
-        # XXX These do not match (off by hundreds of units).
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-
     def test_from_state_vector_zero(self):
         # Degenerate orbit with r=0 and v=0.
         R = Position(0, 0, 0)
@@ -823,6 +803,29 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, radians(90))
         self.assertAlmostEqual(orbit.t, 0.0)
         self.assertAlmostEqual(orbit.M, radians(90))
+
+    def test_from_state_vector_elliptical_arg_pe_gt_180(self):
+        # Elliptical orbit, at periapsis, with arg_pe > 180°.
+        # Regression test for a bug in utilities.elements_from_state_vector.
+        R = Position(0, -2500000, 0)
+        V = Velocity(16703.9010129, 0, 0)
+
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        # XXX These do not match (they are 180° out, due to arg_pe).
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        # Check all the standard elements.
+        self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        # XXX This is incorrectly calculated as 90°.
+        #self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        self.assertAlmostEqual(orbit.M0, 0.0)
+
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertAlmostEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_hyperbolic(self):
         # Hyperbolic orbit, at periapsis.
@@ -1179,25 +1182,22 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         #self.assertAlmostEqual(orbit.M0, 0.0)
 
-    def test_set_v_wrong_angle(self):
-        # Using the v setter to test the same case as
-        # test_from_state_vector_wrong_angle.
-        # This case shows the initial elements that were used when this case was
-        # first discovered in the simulator. (Note that such cases are fairly
-        # common, though in the minority.)
-        body = Body(
-            mass=1000.0,
-            mu=10000000.0,
-            mean_radius=200.0,
-            equatorial_radius=200.0,
-            polar_radius=200.0,
-        )
-        orbit = KeplerianElements(a=255.685775984803, e=0.17332047224045, i=0.0,
-                                  raan=0.0, arg_pe=radians(161.41051062999333),
-                                  M0=radians(180), body=body)
-        R = Position(284.3493564, -95.6360642, 0.0)  # Derived from above.
+    def test_set_v_arg_pe_gt_180(self):
+        # Test the same concept as
+        # test_from_state_vector_elliptical_arg_pe_gt_180 but with the v setter
+        # instead of from_state_vector.
+        # Regression test for a bug in utilities.elements_from_state_vector.
+        # Elliptical orbit, at periapsis, with arg_pe = 90°.
+        orbit = KeplerianElements(a=10000000.0, e=0.75, i=0.0,
+                                  raan=0.0, arg_pe=radians(90),
+                                  M0=0.0, body=earth)
+        R = Position(0, 2500000, 0)
         numpy.testing.assert_almost_equal(orbit.r, R)
-        V = Velocity(61.6080284118652, 179.734466552734, 0.0)
+        numpy.testing.assert_almost_equal(orbit.v, Velocity(-16703.9010129, 0, 0))
+
+        # Reduce velocity to switch around the apoapsis and periapsis, so
+        # arg_pe = 270°.
+        V = Velocity(-10000, 0, 0)
         def set_v(value):
             orbit.v = value
         # XXX The 'r and v changed' detection logic is triggered in this case,
@@ -1206,6 +1206,11 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertRaises(RuntimeError, set_v, V)
         #numpy.testing.assert_almost_equal(orbit.r, R)
         #numpy.testing.assert_almost_equal(orbit.v, V)
+        # arg_pe should have rotated around 180°, and M0 to match (so r is in
+        # the same spot as it was before).
+        # XXX This is incorrectly calculated as 90°.
+        #self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        self.assertAlmostEqual(orbit.M0, radians(180.0))
 
     def test_set_n(self):
         # Circular trajectory.
