@@ -964,7 +964,76 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.r, R)
         numpy.testing.assert_almost_equal(orbit.v, V)
 
-        # TODO: Parabolic orbit.
+    def test_from_state_vector_roundtrips(self):
+        # Simple round-trip tests for a lot of edge cases in
+        # utilities.elements_from_state_vector. Just confirm that r and v come
+        # back relatively unchanged for all of these inputs (without
+        # hand-verifying all the elements).
+
+        # List of (r, v) pairs.
+        # XXX Commented-out cases are failing.
+        CASES = [
+            # Zero.
+            #(Position(0, 0, 0), Velocity(0, 0, 0)),
+
+            # Circular flat, prograde.
+            (Position(10000000, 0, 0), Velocity(0, 6313.4811435530555, 0)),
+            # Circular flat, f > 180°.
+            (Position(0, -10000000, 0), Velocity(6313.4811435530555, 0, 0)),
+            # Circular flat, retrograde.
+            #(Position(10000000, 0, 0), Velocity(0, -6313.4811435530555, 0)),
+
+            # Circular inclined, prograde.
+            #(Position(10000000, 0, 0), Velocity(0, 4464.305329499764, 4464.305329499764)),
+            # Circular inclined, prograde (raan 90°, M0 90°).
+            #(Position(-7071067.811865476, 0, 7071067.811865476), Velocity(0, -6313.4811435530555, 0)),
+            # Circular inclined, raan > 180°.
+            #(Position(0, -10000000, 0), Velocity(4464.305329499764, 0, 4464.305329499764)),
+            # Circular inclined, f > 180°.
+            #(Position(0, -7071067.811865476, -7071067.811865476), Velocity(6313.4811435530555, 0, 0)),
+            # Circular polar.
+            #(Position(10000000, 0, 0), Velocity(0, 0, 6313.4811435530555)),
+
+            # Elliptical flat (e=0.75), prograde.
+            (Position(2500000, 0, 0), Velocity(0, 16703.901013, 0)),
+            # Elliptical flat (e=0.75), arg_pe > 180°.
+            #(Position(0, -2500000, 0), Velocity(16703.901013, 0, 0)),
+            # Elliptical flat (e=0.75), f > 180°.
+            (Position(-13255776.4031414, -5408888.899183, 0), Velocity(3606.1267047, -1678.8615886, 0)),
+
+            # Elliptical inclined.
+            (Position(2500000, 0, 0), Velocity(0, 11811.441678561141, 11811.441678561141)),
+            # Elliptical inclined, arg_pe > 180°.
+            #(Position(0, -1767766.952966369, -1767766.952966369), Velocity(16703.901013, 0, 0)),
+
+            # Parabolic flat.
+            #(Position(2500000, 0, 0), Velocity(0, 17857.221317999058, 0)),
+
+            # Hyperbolic flat (e=1.25).
+            #(Position(2500000, 0, 0), Velocity(0, 18940.443359375, 0)),
+
+            # Radial elliptical flat (mid-orbit).
+            #(Position(1000000, 0, 0), Velocity(10000, 0, 0)),
+            # Radial elliptical flat (at periapsis).
+            #(Position(0, 0, 0), Velocity(10000, 0, 0)),
+            # Radial elliptical flat (at apoapsis).
+            #(Position(10000, 0, 0), Velocity(0, 0, 0)),
+
+            # Radial parabolic flat.
+            #(Position(10000, 0, 0), Velocity(282347.4602329548, 0, 0)),
+
+            # Radial hyperbolic flat.
+            #(Position(10000, 0, 0), Velocity(500000, 0, 0)),
+        ]
+
+        for (i, (r, v)) in enumerate(CASES):
+            orbit = KeplerianElements.from_state_vector(r, v, body=earth)
+            numpy.testing.assert_almost_equal(
+                orbit.r, r, decimal=4, err_msg='Case #%d: %s' % (i, orbit))
+            numpy.testing.assert_almost_equal(
+                orbit.v, v, decimal=4, err_msg='Case #%d: %s' % (i, orbit))
+
+    # TODO: Test from_state_vector for parabolic orbit.
 
     def test_from_tle(self):
         # Sample TLE from Wikipedia:
