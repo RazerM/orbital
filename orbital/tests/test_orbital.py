@@ -882,7 +882,7 @@ class TestOrbitalElements(unittest.TestCase):
     def test_from_state_vector_radial(self):
         # Radial elliptical orbit (R and V are colinear).
         R = Position(-1000000, 0, 0)
-        V = Velocity(-500000, 0, 0)
+        V = Velocity(-10000, 0, 0)
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=RuntimeWarning)
@@ -893,7 +893,6 @@ class TestOrbitalElements(unittest.TestCase):
         #numpy.testing.assert_almost_equal(orbit.v, V)
         # Check all the standard elements.
         #self.assertAlmostEqual(orbit.a, 0.0)  # ?? don't know what this should be
-        # (Currently the result is negative, which isn't right.)
         self.assertAlmostEqual(orbit.e, 1.0)
         #self.assertAlmostEqual(orbit.i, 0.0)
         #self.assertAlmostEqual(orbit.raan, 0.0)
