@@ -1092,14 +1092,18 @@ class TestOrbitalElements(unittest.TestCase):
         RADIUS = 10000000.0
         orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
                                   arg_pe=0.0, M0=0.0, body=earth)
-        orbit.M = radians(495)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.M = radians(495)
         self.assertAlmostEqual(orbit.M, radians(135))
         self.assertAlmostEqual(orbit.E, radians(135))
         self.assertAlmostEqual(orbit.f, radians(135))
         # t does not get set.
         self.assertAlmostEqual(orbit.t, 0.0)
 
-        orbit.M = radians(-45)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.M = radians(-45)
         self.assertAlmostEqual(orbit.M, radians(315))
         self.assertAlmostEqual(orbit.E, radians(315))
         self.assertAlmostEqual(orbit.f, radians(315))
@@ -1108,13 +1112,17 @@ class TestOrbitalElements(unittest.TestCase):
         A = 10000000.0
         orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
                                   M0=0.0, body=earth)
-        orbit.M = 8
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.M = 8
         # XXX Commented-out asserts are failing.
         #self.assertAlmostEqual(orbit.M, 8)
         #self.assertAlmostEqual(orbit.E, 2.8582231297)
         #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
 
-        orbit.M = -2
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.M = -2
         #self.assertAlmostEqual(orbit.M, -2)
         #self.assertAlmostEqual(orbit.E, -1.8412921893)
         #self.assertAlmostEqual(orbit.f, radians(229.3110529418))
@@ -1125,7 +1133,9 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements(a=A, e=0.75, i=0.0, raan=0.0, arg_pe=0.0,
                                   M0=0.0, body=earth)
         # Set E such that M is 90 degrees.
-        orbit.E = radians(125.140095)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.E = radians(125.140095)
         self.assertAlmostEqual(orbit.M, radians(90))
         self.assertAlmostEqual(orbit.E, radians(125.140095))
         self.assertAlmostEqual(orbit.f, radians(157.802569))
@@ -1133,13 +1143,17 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # mod tau test.
-        orbit.E = radians(485.140095)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.E = radians(485.140095)
         # XXX Commented-out asserts are failing.
         #self.assertAlmostEqual(orbit.M, radians(90))
         #self.assertAlmostEqual(orbit.E, radians(125.140095))
         #self.assertAlmostEqual(orbit.f, radians(157.802569))
 
-        orbit.E = radians(-180)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.E = radians(-180)
         #self.assertAlmostEqual(orbit.M, radians(180))
         #self.assertAlmostEqual(orbit.E, radians(180))
         #self.assertAlmostEqual(orbit.f, radians(180))
@@ -1148,7 +1162,9 @@ class TestOrbitalElements(unittest.TestCase):
         A = 10000000.0
         orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
                                   M0=0.0, body=earth)
-        orbit.E = 2.8582231297
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.E = 2.8582231297
         #self.assertAlmostEqual(orbit.M, 8)
         #self.assertAlmostEqual(orbit.E, 2.8582231297)
         #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
@@ -1159,7 +1175,9 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements(a=A, e=0.75, i=0.0, raan=0.0, arg_pe=0.0,
                                   M0=0.0, body=earth)
         # Set f such that M is 90 degrees.
-        orbit.f = radians(157.802569)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.f = radians(157.802569)
         self.assertAlmostEqual(orbit.M, radians(90))
         self.assertAlmostEqual(orbit.E, radians(125.140095))
         self.assertAlmostEqual(orbit.f, radians(157.802569))
@@ -1167,12 +1185,16 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # mod tau test.
-        orbit.f = radians(517.802569)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.f = radians(517.802569)
         self.assertAlmostEqual(orbit.M, radians(90))
         self.assertAlmostEqual(orbit.E, radians(125.140095))
         self.assertAlmostEqual(orbit.f, radians(157.802569))
 
-        orbit.f = radians(-180)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.f = radians(-180)
         self.assertAlmostEqual(orbit.M, radians(180))
         self.assertAlmostEqual(orbit.E, radians(180))
         self.assertAlmostEqual(orbit.f, radians(180))
@@ -1181,19 +1203,25 @@ class TestOrbitalElements(unittest.TestCase):
         A = 10000000.0
         orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
                                   M0=0.0, body=earth)
-        orbit.f = radians(138.9976341059)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.f = radians(138.9976341059)
         # XXX Commented-out asserts are failing.
         #self.assertAlmostEqual(orbit.M, 8)
         #self.assertAlmostEqual(orbit.E, 2.8582231297)
         #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
 
-        orbit.f = radians(-138.9976341059)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.f = radians(-138.9976341059)
         #self.assertAlmostEqual(orbit.M, -8)
         #self.assertAlmostEqual(orbit.E, -2.8582231297)
         #self.assertAlmostEqual(orbit.f, radians(221.0023658941))
 
         # Past limit of true anomaly for e=1.25.
-        orbit.f = radians(145)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=OrbitalWarning)
+            orbit.f = radians(145)
         self.assertTrue(isnan(orbit.M))
         self.assertTrue(isnan(orbit.E))
         self.assertTrue(isnan(orbit.f))
