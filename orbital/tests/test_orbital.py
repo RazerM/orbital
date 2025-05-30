@@ -998,6 +998,8 @@ class TestOrbitalElements(unittest.TestCase):
             (Position(2500000, 0, 0), Velocity(0, 16703.901013, 0)),
             # Elliptical flat (e=0.75), arg_pe > 180°.
             #(Position(0, -2500000, 0), Velocity(16703.901013, 0, 0)),
+            # Elliptical flat (e=0.75), retrograde.
+            #(Position(2500000, 0, 0), Velocity(0, -16703.901013, 0)),
             # Elliptical flat (e=0.75), f > 180°.
             (Position(-13255776.4031414, -5408888.899183, 0), Velocity(3606.1267047, -1678.8615886, 0)),
 
