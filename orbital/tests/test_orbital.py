@@ -79,10 +79,10 @@ class TestOrbitalElements(unittest.TestCase):
     def test_anomaly_at_time(self):
         RADIUS = 10000000.0
         orbit = KeplerianElements(a=RADIUS, M0=radians(90), body=earth)
-        # For a circular orbit, all three anomalies are the same.
         # Test all of the properties that change with time.
         self.assertAlmostEqual(orbit.epoch, J2000)
         self.assertAlmostEqual(orbit.t, 0.0)
+        # For a circular orbit, all three anomalies are the same.
         self.assertAlmostEqual(orbit.M, radians(90))
         self.assertAlmostEqual(orbit.E, radians(90))
         self.assertAlmostEqual(orbit.f, radians(90))
