@@ -30,7 +30,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         self.assertAlmostEqual(orbit.epoch, J2000)
@@ -502,7 +502,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # Elliptical orbit.
@@ -584,7 +584,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, radians(35))
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # TODO: These should be part of separate tests, as they have nothing to
@@ -618,7 +618,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # Elliptical orbit.
@@ -658,7 +658,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # Elliptical orbit.
@@ -700,7 +700,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # 1/4 of the way around.
@@ -741,7 +741,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_inclined(self):
@@ -765,7 +765,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, radians(90))
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_elliptical(self):
@@ -785,7 +785,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # Elliptical orbit, 1/4 of the period elapsed.
@@ -824,7 +824,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_hyperbolic(self):
@@ -844,7 +844,7 @@ class TestOrbitalElements(unittest.TestCase):
         #self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
         # Hyperbolic orbit, f = 90°.
@@ -900,7 +900,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_radial_r0(self):
@@ -924,7 +924,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_radial_v0(self):
@@ -948,7 +948,7 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertAlmostEqual(orbit.body, earth)
+        self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_iss(self):
