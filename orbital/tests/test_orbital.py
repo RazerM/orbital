@@ -1315,7 +1315,7 @@ class TestOrbitalElements(unittest.TestCase):
         RADIUS = 10000000.0
         orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
                                   arg_pe=0.0, M0=0.0, body=earth)
-        NEW_N = sqrt(earth.mu / 5000000 ** 3)
+        NEW_N = sqrt(earth.mu / 5000000.0 ** 3)
         orbit.n = NEW_N
         self.assertAlmostEqual(orbit.n, NEW_N)
         self.assertAlmostEqual(orbit.T, tau / NEW_N)
@@ -1326,7 +1326,7 @@ class TestOrbitalElements(unittest.TestCase):
         RADIUS = 10000000.0
         orbit = KeplerianElements(a=RADIUS, e=0.0, i=0.0, raan=0.0,
                                   arg_pe=0.0, M0=0.0, body=earth)
-        NEW_T = tau * sqrt(5000000 ** 3 / earth.mu)
+        NEW_T = tau * sqrt(5000000.0 ** 3 / earth.mu)
         orbit.T = NEW_T
         self.assertAlmostEqual(orbit.n, tau / NEW_T)
         self.assertAlmostEqual(orbit.T, NEW_T)
