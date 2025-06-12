@@ -705,6 +705,32 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
+    def test_from_state_vector_f_at_periapsis(self):
+        # Elliptical orbit, inclined, at periapsis.
+        # Regression test for https://github.com/RazerM/orbital/issues/40.
+        # In this particular case, the above bug would cause f to be nan due to
+        # floating point rounding errors.
+        R = Position(0, -1767766.952966369, -1767766.952966369)
+        V = Velocity(16703.901013, 0, 0)
+
+        # XXX Currently crashes due to the above bug.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            self.assertRaises(AssertionError,
+                              KeplerianElements.from_state_vector, R, V, body=earth)
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        #self.assertAlmostEqual(orbit.a, 10000000.0, places=2)
+        #self.assertAlmostEqual(orbit.e, 0.75)
+        #self.assertAlmostEqual(orbit.i, radians(45))
+        #self.assertAlmostEqual(orbit.raan, 0.0)
+        #self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        #self.assertAlmostEqual(orbit.M0, 0.0)
+
+        #self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        #self.assertEqual(orbit.body, earth)
+        #self.assertAlmostEqual(orbit.t, 0.0)
+
     def test_from_state_vector_iss(self):
         # ISS (Zarya) from 2008-09-20 12:25:40
         # Source: SGP4 parsed TLE example from
