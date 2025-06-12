@@ -445,6 +445,8 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M, radians(40))
 
     def test_with_altitude(self):
+        # TODO: This isn't the best example, as most of the cases below get a
+        # negative periapsis altitude because it's so close to the earth.
         ALTITUDE = 10000.0
 
         # Circular orbit.
@@ -480,12 +482,7 @@ class TestOrbitalElements(unittest.TestCase):
         # Elliptical orbit, nonzero M0.
         orbit = KeplerianElements.with_altitude(ALTITUDE, e=0.75, M0=radians(35), body=earth)
         self.assertAlmostEqual(orbit.M, radians(35))
-        # XXX This is failing. The definition of with_altitude is that the
-        # altitude (norm(r)) should be the value given at t=0.
-        #self.assertAlmostEqual(norm(orbit.r), ALTITUDE + earth.mean_radius)
-        # XXX These values are set to the current values given, but the above
-        # shows that it is wrong (and, e.g., pericenter_altitude should not be
-        # negative for such a low M0 angle).
+        self.assertAlmostEqual(norm(orbit.r), ALTITUDE + earth.mean_radius)
         self.assertAlmostEqual(orbit.apocenter_radius, 7094311.533422537 + earth.mean_radius)
         self.assertAlmostEqual(orbit.pericenter_radius, -4447384.066653923 + earth.mean_radius)
         self.assertAlmostEqual(orbit.apocenter_altitude, 7094311.533422537)
