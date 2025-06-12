@@ -154,9 +154,10 @@ class KeplerianElements(object):
                           OrbitalWarning)
             self.M0 = self._M = 0
 
-        assert self.t == 0
-        assert not isnan(self.M0)
-        assert self.M0 == ou.mod(self.M, 2 * pi)
+        assert self.t == 0, 'from_state_vector: t is nonzero'
+        assert not isnan(self.M0), 'from_state_vector: M0 is nan'
+        assert self.M0 == ou.mod(self.M, 2 * pi), \
+            'from_state_vector: M is not equal to M0'
 
         return self
 
