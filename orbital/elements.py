@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 
 import warnings
 from datetime import timedelta
-from math import isnan
 
 import numpy as np
 import sgp4.io
@@ -134,29 +133,10 @@ class KeplerianElements(object):
             body=body,
             ref_epoch=ref_epoch)
 
-        if isnan(elements.e):
-            # Currently, parabolic and radial cases are not properly processed
-            # by elements_from_state_vector, resulting in a number of members
-            # being set to nan (including e). So that we can fully test these
-            # cases, log a warning and continue rather than raising an
-            # exception.
-            warnings.warn('from_state_vector: e was nan', OrbitalWarning)
-            self.e = 1.0
-            self.i = 0.0
-            self.raan = 0.0
-            self.arg_pe = 0.0
-            self.M0 = self._M = 0
-        elif elements.e > 1.0:
-            # Currently, hyperbolic cases are not properly processed by
-            # mean_anomaly_from_true, resulting in M0 being set to nan.
-            # Again, log a warning and continue.
-            warnings.warn('from_state_vector: e > 1.0; setting M0 to 0.0',
-                          OrbitalWarning)
-            self.M0 = self._M = 0
-
-        assert self.t == 0
-        assert not isnan(self.M0)
-        assert self.M0 == ou.mod(self.M, 2 * pi)
+        # Fix mean anomaly at epoch for new orbit and position.
+        oldM0 = self.M0
+        self.M0 = ou.mod(self.M - self.n * self.t, 2 * pi)
+        assert self.M0 == oldM0
 
         return self
 

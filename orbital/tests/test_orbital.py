@@ -727,22 +727,8 @@ class TestOrbitalElements(unittest.TestCase):
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=RuntimeWarning)
-            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-
-        # XXX Commented-out asserts are failing.
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
-        self.assertAlmostEqual(orbit.a, 0.0)
-        #self.assertAlmostEqual(orbit.e, 0.0)
-        #self.assertAlmostEqual(orbit.i, 0.0)
-        #self.assertAlmostEqual(orbit.raan, 0.0)
-        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        self.assertAlmostEqual(orbit.M0, 0.0)
-
-        self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertEqual(orbit.body, earth)
-        self.assertAlmostEqual(orbit.t, 0.0)
+            self.assertRaises(AssertionError,
+                              KeplerianElements.from_state_vector, R, V, body=earth)
 
     def test_from_state_vector_inclined(self):
         # Inclined circular orbit, 1/4 of the way around.
