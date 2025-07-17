@@ -398,7 +398,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.pericenter_radius, ALTITUDE + earth.mean_radius)
         self.assertAlmostEqual(orbit.apocenter_altitude, ALTITUDE)
         self.assertAlmostEqual(orbit.pericenter_altitude, ALTITUDE)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, ALTITUDE + earth.mean_radius)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -417,7 +416,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.pericenter_radius, ALTITUDE + earth.mean_radius)
         self.assertAlmostEqual(orbit.apocenter_altitude, 38296000.0)
         self.assertAlmostEqual(orbit.pericenter_altitude, ALTITUDE)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 25524000.0)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -433,7 +431,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.pericenter_radius, -4447384.066653923 + earth.mean_radius)
         self.assertAlmostEqual(orbit.apocenter_altitude, 7094311.533422537)
         self.assertAlmostEqual(orbit.pericenter_altitude, -4447384.066653923)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 7694463.733384307)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -446,7 +443,6 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements.with_period(2 * 60 * 60, M0=radians(35), body=earth)
         self.assertAlmostEqual(orbit.T, 2 * 60 * 60)
 
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 8058997.3045416)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -480,7 +476,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.pericenter_radius, 10000.0 + earth.mean_radius)
         self.assertAlmostEqual(orbit.apocenter_altitude, 10000.0)
         self.assertAlmostEqual(orbit.pericenter_altitude, 10000.0)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 10000.0 + earth.mean_radius)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -498,7 +493,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.pericenter_radius, 10000.0 + earth.mean_radius)
         self.assertAlmostEqual(orbit.apocenter_altitude, 38296000.0)
         self.assertAlmostEqual(orbit.pericenter_altitude, 10000.0)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 25524000.0)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -520,7 +514,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.pericenter_radius, 10000000.0)
         self.assertAlmostEqual(orbit.apocenter_altitude, 10000000.0 - earth.mean_radius)
         self.assertAlmostEqual(orbit.pericenter_altitude, 10000000.0 - earth.mean_radius)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 10000000.0)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -538,7 +531,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.pericenter_radius, 10000000.0)
         self.assertAlmostEqual(orbit.apocenter_altitude, 20000000.0 - earth.mean_radius)
         self.assertAlmostEqual(orbit.pericenter_altitude, 10000000.0 - earth.mean_radius)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 15000000.0)
         self.assertAlmostEqual(orbit.e, 1.0 / 3.0)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -562,7 +554,6 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements.from_state_vector(R, V, body=earth)
         numpy.testing.assert_almost_equal(orbit.r, R)
         numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, RADIUS)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -580,7 +571,6 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements.from_state_vector(R, V, body=earth)
         numpy.testing.assert_almost_equal(orbit.r, R)
         numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, RADIUS)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -620,7 +610,6 @@ class TestOrbitalElements(unittest.TestCase):
         # test_from_state_vector_circular for some reason.
         #numpy.testing.assert_almost_equal(orbit.r, R)
         #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, RADIUS)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, radians(45))
@@ -640,7 +629,6 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements.from_state_vector(R, V, body=earth)
         numpy.testing.assert_almost_equal(orbit.r, R)
         numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -658,7 +646,6 @@ class TestOrbitalElements(unittest.TestCase):
         orbit = KeplerianElements.from_state_vector(R, V, body=earth)
         numpy.testing.assert_almost_equal(orbit.r, R, decimal=4)
         numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
@@ -678,7 +665,6 @@ class TestOrbitalElements(unittest.TestCase):
         # XXX These do not match (they are 180° out, due to arg_pe).
         #numpy.testing.assert_almost_equal(orbit.r, R)
         #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
         self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
