@@ -624,6 +624,7 @@ class TestOrbitalElements(unittest.TestCase):
 
     def test_from_state_vector_inclined(self):
         # Inclined circular orbit, 1/4 of the way around.
+        # Regression test for https://github.com/RazerM/orbital/issues/38.
         RADIUS = 10000000.0
         R = Position(-RADIUS * 0.5 * sqrt(2), 0, RADIUS * 0.5 * sqrt(2))
         V = Velocity(0, -sqrt(earth.mu / RADIUS), 0)
@@ -684,7 +685,7 @@ class TestOrbitalElements(unittest.TestCase):
 
     def test_from_state_vector_elliptical_arg_pe_gt_180(self):
         # Elliptical orbit, at periapsis, with arg_pe > 180°.
-        # Regression test for a bug in utilities.elements_from_state_vector.
+        # Regression test for https://github.com/RazerM/orbital/issues/39.
         R = Position(0, -2500000, 0)
         V = Velocity(16703.9010129, 0, 0)
 
@@ -947,7 +948,7 @@ class TestOrbitalElements(unittest.TestCase):
         # Test the same concept as
         # test_from_state_vector_elliptical_arg_pe_gt_180 but with the v setter
         # instead of from_state_vector.
-        # Regression test for a bug in utilities.elements_from_state_vector.
+        # Regression test for https://github.com/RazerM/orbital/issues/39.
         # Elliptical orbit, at periapsis, with arg_pe = 90°.
         orbit = KeplerianElements(a=10000000.0, e=0.75, i=0.0,
                                   raan=0.0, arg_pe=radians(90),
