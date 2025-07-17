@@ -596,6 +596,10 @@ class TestOrbitalElements(unittest.TestCase):
         R = Position(0, 0, 0)
         V = Velocity(0, 0, 0)
 
+        # This case currently violates an assertion due to internal values being
+        # NaN.
+        # XXX An AssertionError indicates an unexpected case. This should
+        # probably be explicitly detected and raise another kind of error.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=RuntimeWarning)
             self.assertRaises(AssertionError,
@@ -607,8 +611,11 @@ class TestOrbitalElements(unittest.TestCase):
         R = Position(-RADIUS * 0.5 * sqrt(2), 0, RADIUS * 0.5 * sqrt(2))
         V = Velocity(0, -sqrt(earth.mu / RADIUS), 0)
 
-        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-        # XXX: r, v and arg_pe are nan for some reason.
+        with warnings.catch_warnings():
+            # XXX This has a warning for dividing by zero.
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        # XXX: r, v and arg_pe are nan due to a bug in from_state_vector.
         # This happens for a perfect circle, but doesn't happen in
         # test_from_state_vector_circular for some reason.
         #numpy.testing.assert_almost_equal(orbit.r, R)
@@ -837,11 +844,15 @@ class TestOrbitalElements(unittest.TestCase):
         # t does not get set.
         self.assertAlmostEqual(orbit.t, 0.0)
 
-        # mod tau test.
+        # Test values outside the range (0, tau].
+        # Regression test for https://github.com/RazerM/orbital/issues/37.
+        # XXX Unlike setting M or f, setting E does not mod by tau. Attempting
+        # to read the value of E back results in non-convergence because the
+        # value of M is outside of the expected range.
+        # Commented-out asserts are failing.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=OrbitalWarning)
             orbit.E = radians(485.140095)
-        # XXX Commented-out asserts are failing.
         #self.assertAlmostEqual(orbit.M, radians(90))
         #self.assertAlmostEqual(orbit.E, radians(125.140095))
         #self.assertAlmostEqual(orbit.f, radians(157.802569))
