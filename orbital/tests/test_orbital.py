@@ -595,6 +595,33 @@ class TestOrbitalElements(unittest.TestCase):
             self.assertRaises(AssertionError,
                               KeplerianElements.from_state_vector, R, V, body=earth)
 
+    def test_from_state_vector_circular_retrograde(self):
+        # Circular orbit, retrograde.
+        # Regression test for https://github.com/RazerM/orbital/issues/18.
+        RADIUS = 10000000.0
+        R = Position(RADIUS, 0, 0)
+        V = Velocity(0, -sqrt(earth.mu / RADIUS), 0)
+
+        # XXX This erroneously generates warnings and raises an assertion, due
+        # to internal values being NaN.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            self.assertRaises(AssertionError,
+                              KeplerianElements.from_state_vector, R, V, body=earth)
+        # The expected values, after this bug is fixed:
+        #numpy.testing.assert_almost_equal(orbit.r, R)
+        #numpy.testing.assert_almost_equal(orbit.v, V)
+        #self.assertAlmostEqual(orbit.a, RADIUS)
+        #self.assertAlmostEqual(orbit.e, 0.0)
+        #self.assertAlmostEqual(orbit.i, radians(180))
+        #self.assertAlmostEqual(orbit.raan, 0.0)
+        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        #self.assertAlmostEqual(orbit.M0, 0.0)
+
+        #self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        #self.assertEqual(orbit.body, earth)
+        #self.assertAlmostEqual(orbit.t, 0.0)
+
     def test_from_state_vector_inclined(self):
         # Inclined circular orbit, 1/4 of the way around.
         RADIUS = 10000000.0
