@@ -1,4 +1,4 @@
-from math import isnan, sqrt, tau
+from math import sqrt, tau
 import unittest
 import warnings
 
@@ -8,8 +8,7 @@ from numpy import radians
 from numpy.linalg import norm
 import numpy.testing
 from orbital import earth, KeplerianElements, venus
-from orbital.bodies import Body
-from orbital.utilities import mod, Position, Velocity
+from orbital.utilities import Position, Velocity
 from orbital.utilities import OrbitalWarning, ConvergenceError
 from scipy.constants import kilo
 
