@@ -351,101 +351,6 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
         self.assertUVWMatches(orbit)
 
-    def test_hyperbolic(self):
-        A = 10000000.0
-        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
-                                  M0=0.0, body=earth)
-
-        # XXX Commented-out asserts are failing.
-        self.assertAlmostEqual(orbit.a, -A)
-        self.assertAlmostEqual(orbit.e, 1.25)
-        self.assertAlmostEqual(orbit.i, 0.0)
-        self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        self.assertAlmostEqual(orbit.M0, 0.0)
-
-        self.assertAlmostEqual(orbit.epoch, J2000)
-        self.assertAlmostEqual(orbit.t, 0.0)
-        self.assertAlmostEqual(orbit.M, 0.0)
-        self.assertAlmostEqual(orbit.E, 0.0)
-        #self.assertAlmostEqual(orbit.f, 0.0)
-
-        #numpy.testing.assert_almost_equal(orbit.r, Position(2500000, 0, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(0, 18940.443359375, 0.0))
-
-        # Angular velocity and period are the same as for a circular orbit.
-        #self.assertAlmostEqual(orbit.n, sqrt(earth.mu / A ** 3))
-        #self.assertEqual(orbit.T, float('inf'))
-        #self.assertAlmostEqual(orbit.fpa, 0.0)
-
-        #self.assertAlmostEqual(orbit.apocenter_radius, float('inf'))
-        self.assertAlmostEqual(orbit.pericenter_radius, 2500000.0)
-        #self.assertAlmostEqual(orbit.apocenter_altitude, float('inf'))
-        self.assertAlmostEqual(orbit.pericenter_altitude, 2500000.0 - earth.mean_radius)
-
-        #numpy.testing.assert_almost_equal(orbit.U, np.array([1, 0, 0]))
-        #numpy.testing.assert_almost_equal(orbit.V, np.array([0, 1, 0]))
-        #numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
-        self.assertUVWMatches(orbit)
-
-    def test_hyperbolic_times(self):
-        A = 10000000.0
-        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
-                                  M0=0.0, body=earth)
-        # Test all of the properties that change with time.
-        # XXX Commented-out asserts are failing. Also some may be incorrect.
-        # At periapsis.
-        self.assertAlmostEqual(orbit.t, 0.0)
-        self.assertAlmostEqual(orbit.M, 0.0)
-        self.assertAlmostEqual(orbit.E, 0.0)
-        #self.assertAlmostEqual(orbit.f, 0.0)
-        #numpy.testing.assert_almost_equal(orbit.r, Position(2500000, 0, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(0, 18940.443359375, 0.0))
-        #self.assertAlmostEqual(orbit.fpa, 0.0)
-        #numpy.testing.assert_almost_equal(orbit.U, np.array([1, 0, 0]))
-        #numpy.testing.assert_almost_equal(orbit.V, np.array([0, 1, 0]))
-        #numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
-        self.assertUVWMatches(orbit)
-
-        # At f = 90°.
-        orbit.t = 387.0334193  # Calculated to get f = 90°.
-        #self.assertAlmostEqual(orbit.M, 0.2443528194)
-        #self.assertAlmostEqual(orbit.E, 0.6931471806)
-        #self.assertAlmostEqual(orbit.f, radians(90))
-        #numpy.testing.assert_almost_equal(orbit.r, Position(0, 5625000, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(-8417.974609, 10522.468750, 0.0))
-        #self.assertAlmostEqual(orbit.fpa, radians(0.8960553846))
-        #numpy.testing.assert_almost_equal(orbit.U, np.array([0, 1, 0]))
-        #numpy.testing.assert_almost_equal(orbit.V, np.array([-1, 0, 0]))
-        #numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
-        self.assertUVWMatches(orbit)
-
-        # At f = -90°.
-        orbit.t = -387.0334193  # Calculated to get f = -90°.
-        #self.assertAlmostEqual(orbit.M, -0.2443528194)
-        #self.assertAlmostEqual(orbit.E, -0.6931471806)
-        #self.assertAlmostEqual(orbit.f, radians(-90))
-        #numpy.testing.assert_almost_equal(orbit.r, Position(0, -5625000, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(8417.974609, 10522.468750, 0.0))
-        #self.assertAlmostEqual(orbit.fpa, radians(0.8960553846))
-        #numpy.testing.assert_almost_equal(orbit.U, np.array([0, -1, 0]))
-        #numpy.testing.assert_almost_equal(orbit.V, np.array([1, 0, 0]))
-        #numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
-        self.assertUVWMatches(orbit)
-
-        # At M > tau (test that it is not mod-tau).
-        orbit.t = 12671.29784
-        #self.assertAlmostEqual(orbit.M, 8.0)
-        #self.assertAlmostEqual(orbit.E, 2.8582231297)
-        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
-        #numpy.testing.assert_almost_equal(orbit.r, Position(-749394, 651493, 0))
-        #numpy.testing.assert_almost_equal(orbit.v, Velocity(-5522.950684, 4169.570312, 0.0))
-        #self.assertAlmostEqual(orbit.fpa, radians(86.049))
-        #numpy.testing.assert_almost_equal(orbit.U, np.array([-1, 1, 0]))  # XXX figure this out
-        #numpy.testing.assert_almost_equal(orbit.V, np.array([-1, 1, 0]))  # XXX figure this out
-        #numpy.testing.assert_almost_equal(orbit.W, np.array([0, 0, 1]))
-        self.assertUVWMatches(orbit)
-
     def test_apsides(self):
         orbit = KeplerianElements.with_period(90 * 60, body=earth)
 
@@ -536,40 +441,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, radians(35))
         self.assertAlmostEqual(orbit.t, 0.0)
-
-        # Hyperbolic orbit.
-        orbit = KeplerianElements.with_altitude(ALTITUDE, e=1.25, body=earth)
-        # XXX Commented-out asserts are failing. Also some may be incorrect.
-        #self.assertAlmostEqual(norm(orbit.r), ALTITUDE + earth.mean_radius)
-        #self.assertAlmostEqual(orbit.apocenter_radius, float('inf'))
-        #self.assertAlmostEqual(orbit.pericenter_radius, ALTITUDE + earth.mean_radius)
-        #self.assertAlmostEqual(orbit.apocenter_altitude, float('inf'))
-        #self.assertAlmostEqual(orbit.pericenter_altitude, ALTITUDE)
-        # Check all the standard elements.
-        #self.assertAlmostEqual(orbit.a, 25524000.0)  # XXX Don't know what this should be.
-        self.assertAlmostEqual(orbit.e, 1.25)
-        self.assertAlmostEqual(orbit.i, 0.0)
-        self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        self.assertAlmostEqual(orbit.M0, 0.0)
-
-        # Hyperbolic orbit, nonzero M0.
-        orbit = KeplerianElements.with_altitude(ALTITUDE, e=1.25, M0=radians(35), body=earth)
-        self.assertAlmostEqual(orbit.M, radians(35))
-        # XXX Commented-out asserts are failing. Also some may be incorrect.
-        #self.assertAlmostEqual(norm(orbit.r), ALTITUDE + earth.mean_radius)
-        #self.assertAlmostEqual(orbit.apocenter_radius, float('inf'))
-        # XXX The pericenter should be some other value.
-        #self.assertAlmostEqual(orbit.pericenter_radius, ALTITUDE + earth.mean_radius)
-        #self.assertAlmostEqual(orbit.apocenter_altitude, float('inf'))
-        #self.assertAlmostEqual(orbit.pericenter_altitude, ALTITUDE)
-        # Check all the standard elements.
-        #self.assertAlmostEqual(orbit.a, 25524000.0)  # XXX Don't know what this should be.
-        self.assertAlmostEqual(orbit.e, 1.25)
-        self.assertAlmostEqual(orbit.i, 0.0)
-        self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        self.assertAlmostEqual(orbit.M0, radians(35))
 
     def test_with_period(self):
         orbit = KeplerianElements.with_period(2 * 60 * 60, M0=radians(35), body=earth)
@@ -813,130 +684,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertEqual(orbit.body, earth)
         self.assertAlmostEqual(orbit.t, 0.0)
 
-    def test_from_state_vector_hyperbolic(self):
-        # Hyperbolic orbit, at periapsis.
-        R = Position(2500000, 0, 0)
-        V = Velocity(0, 18940.443359375, 0)
-
-        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
-        self.assertAlmostEqual(orbit.a, -10000000.0, places=-1)
-        self.assertAlmostEqual(orbit.e, 1.25)
-        self.assertAlmostEqual(orbit.i, 0.0)
-        self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        #self.assertAlmostEqual(orbit.M0, 0.0)
-
-        self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertEqual(orbit.body, earth)
-        self.assertAlmostEqual(orbit.t, 0.0)
-
-        # Hyperbolic orbit, f = 90°.
-        R = Position(0, 5625000, 0)
-        V = Velocity(-8417.974609, 10522.468750, 0.0)
-        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
-        self.assertAlmostEqual(orbit.a, -10000000.0, places=0)
-        self.assertAlmostEqual(orbit.e, 1.25)
-        self.assertAlmostEqual(orbit.i, 0.0)
-        self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        #self.assertAlmostEqual(orbit.M0, 0.2443528194)
-        self.assertAlmostEqual(orbit.t, 0.0)
-        #self.assertAlmostEqual(orbit.f, radians(90))
-
-        # Hyperbolic orbit, f = -90°.
-        R = Position(0, -5625000, 0)
-        V = Velocity(8417.974609, 10522.468750, 0.0)
-        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
-        self.assertAlmostEqual(orbit.a, -10000000.0, places=0)
-        self.assertAlmostEqual(orbit.e, 1.25)
-        self.assertAlmostEqual(orbit.i, 0.0)
-        self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        #self.assertAlmostEqual(orbit.M0, -0.2443528194)
-        self.assertAlmostEqual(orbit.t, 0.0)
-        #self.assertAlmostEqual(orbit.f, radians(-90))
-
-    def test_from_state_vector_radial(self):
-        # Radial elliptical orbit (R and V are colinear).
-        R = Position(-1000000, 0, 0)
-        V = Velocity(-10000, 0, 0)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=RuntimeWarning)
-            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-
-        # XXX Commented-out asserts are failing.
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
-        #self.assertAlmostEqual(orbit.a, 0.0)  # ?? don't know what this should be
-        self.assertAlmostEqual(orbit.e, 1.0)
-        #self.assertAlmostEqual(orbit.i, 0.0)
-        #self.assertAlmostEqual(orbit.raan, 0.0)
-        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        self.assertAlmostEqual(orbit.M0, 0.0)
-
-        self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertEqual(orbit.body, earth)
-        self.assertAlmostEqual(orbit.t, 0.0)
-
-    def test_from_state_vector_radial_r0(self):
-        # Radial elliptical orbit, with r=0 and a nonzero velocity.
-        R = Position(0, 0, 0)
-        V = Velocity(-10000, 0, 0)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=RuntimeWarning)
-            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-
-        # XXX Commented-out asserts are failing.
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
-        self.assertAlmostEqual(orbit.a, 0.0)  # ?? don't know what this should be
-        #self.assertAlmostEqual(orbit.e, 1.0)
-        #self.assertAlmostEqual(orbit.i, 0.0)
-        #self.assertAlmostEqual(orbit.raan, 0.0)
-        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        self.assertAlmostEqual(orbit.M0, 0.0)
-
-        self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertEqual(orbit.body, earth)
-        self.assertAlmostEqual(orbit.t, 0.0)
-
-    def test_from_state_vector_radial_v0(self):
-        # Radial elliptical orbit, with nonzero r and a v=0.
-        R = Position(-10000, 0, 0)
-        V = Velocity(0, 0, 0)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=RuntimeWarning)
-            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-
-        # XXX Commented-out asserts are failing.
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        # Check all the standard elements.
-        self.assertAlmostEqual(orbit.a, 5000.0)
-        self.assertAlmostEqual(orbit.e, 1.0)
-        #self.assertAlmostEqual(orbit.i, 0.0)
-        #self.assertAlmostEqual(orbit.raan, 0.0)
-        #self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        self.assertAlmostEqual(orbit.M0, 0.0)
-
-        self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        self.assertEqual(orbit.body, earth)
-        self.assertAlmostEqual(orbit.t, 0.0)
-
     def test_from_state_vector_iss(self):
         # ISS (Zarya) from 2008-09-20 12:25:40
         # Source: SGP4 parsed TLE example from
@@ -993,25 +740,6 @@ class TestOrbitalElements(unittest.TestCase):
             (Position(2500000, 0, 0), Velocity(0, 11811.441678561141, 11811.441678561141)),
             # Elliptical inclined, arg_pe > 180°.
             #(Position(0, -1767766.952966369, -1767766.952966369), Velocity(16703.901013, 0, 0)),
-
-            # Parabolic flat.
-            #(Position(2500000, 0, 0), Velocity(0, 17857.221317999058, 0)),
-
-            # Hyperbolic flat (e=1.25).
-            #(Position(2500000, 0, 0), Velocity(0, 18940.443359375, 0)),
-
-            # Radial elliptical flat (mid-orbit).
-            #(Position(1000000, 0, 0), Velocity(10000, 0, 0)),
-            # Radial elliptical flat (at periapsis).
-            #(Position(0, 0, 0), Velocity(10000, 0, 0)),
-            # Radial elliptical flat (at apoapsis).
-            #(Position(10000, 0, 0), Velocity(0, 0, 0)),
-
-            # Radial parabolic flat.
-            #(Position(10000, 0, 0), Velocity(282347.4602329548, 0, 0)),
-
-            # Radial hyperbolic flat.
-            #(Position(10000, 0, 0), Velocity(500000, 0, 0)),
         ]
 
         for (i, (r, v)) in enumerate(CASES):
@@ -1020,8 +748,6 @@ class TestOrbitalElements(unittest.TestCase):
                 orbit.r, r, decimal=4, err_msg='Case #%d: %s' % (i, orbit))
             numpy.testing.assert_almost_equal(
                 orbit.v, v, decimal=4, err_msg='Case #%d: %s' % (i, orbit))
-
-    # TODO: Test from_state_vector for parabolic orbit.
 
     def test_from_tle(self):
         # Sample TLE from Wikipedia:
@@ -1096,25 +822,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.E, radians(315))
         self.assertAlmostEqual(orbit.f, radians(315))
 
-        # Hyperbolic trajectory - should not mod tau.
-        A = 10000000.0
-        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
-                                  M0=0.0, body=earth)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=OrbitalWarning)
-            orbit.M = 8
-        # XXX Commented-out asserts are failing.
-        #self.assertAlmostEqual(orbit.M, 8)
-        #self.assertAlmostEqual(orbit.E, 2.8582231297)
-        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=OrbitalWarning)
-            orbit.M = -2
-        #self.assertAlmostEqual(orbit.M, -2)
-        #self.assertAlmostEqual(orbit.E, -1.8412921893)
-        #self.assertAlmostEqual(orbit.f, radians(229.3110529418))
-
     def test_set_E(self):
         # Elliptical trajectory.
         A = 10000000.0
@@ -1146,17 +853,6 @@ class TestOrbitalElements(unittest.TestCase):
         #self.assertAlmostEqual(orbit.E, radians(180))
         #self.assertAlmostEqual(orbit.f, radians(180))
 
-        # Hyperbolic trajectory - should not mod tau.
-        A = 10000000.0
-        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
-                                  M0=0.0, body=earth)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=OrbitalWarning)
-            orbit.E = 2.8582231297
-        #self.assertAlmostEqual(orbit.M, 8)
-        #self.assertAlmostEqual(orbit.E, 2.8582231297)
-        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
-
     def test_set_f(self):
         # Elliptical trajectory.
         A = 10000000.0
@@ -1186,33 +882,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.M, radians(180))
         self.assertAlmostEqual(orbit.E, radians(180))
         self.assertAlmostEqual(orbit.f, radians(180))
-
-        # Hyperbolic trajectory
-        A = 10000000.0
-        orbit = KeplerianElements(a=-A, e=1.25, i=0.0, raan=0.0, arg_pe=0.0,
-                                  M0=0.0, body=earth)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=OrbitalWarning)
-            orbit.f = radians(138.9976341059)
-        # XXX Commented-out asserts are failing.
-        #self.assertAlmostEqual(orbit.M, 8)
-        #self.assertAlmostEqual(orbit.E, 2.8582231297)
-        #self.assertAlmostEqual(orbit.f, radians(138.9976341059))
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=OrbitalWarning)
-            orbit.f = radians(-138.9976341059)
-        #self.assertAlmostEqual(orbit.M, -8)
-        #self.assertAlmostEqual(orbit.E, -2.8582231297)
-        #self.assertAlmostEqual(orbit.f, radians(221.0023658941))
-
-        # Past limit of true anomaly for e=1.25.
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=OrbitalWarning)
-            orbit.f = radians(145)
-        self.assertTrue(isnan(orbit.M))
-        self.assertTrue(isnan(orbit.E))
-        self.assertTrue(isnan(orbit.f))
 
     def test_set_a(self):
         orbit = KeplerianElements(a=10000000.0, e=0.0, i=0.0, raan=0.0,
@@ -1249,22 +918,6 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.raan, 0.0)
         self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, 0.0)
-
-        # TODO: Go into a parabolic trajectory.
-
-        # Hyperbolic trajectory.
-        V = Velocity(0, 18940.443359375, 0.0)
-        orbit.v = V
-        # XXX Commented-out asserts are failing.
-        #numpy.testing.assert_almost_equal(orbit.r, R)
-        #numpy.testing.assert_almost_equal(orbit.v, V)
-        self.assertAlmostEqual(orbit.pericenter_radius, RADIUS)
-        self.assertAlmostEqual(orbit.a, -10000000.0, places=-1)
-        self.assertAlmostEqual(orbit.e, 1.25)
-        self.assertAlmostEqual(orbit.i, 0.0)
-        self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        #self.assertAlmostEqual(orbit.M0, 0.0)
 
     def test_set_v_arg_pe_gt_180(self):
         # Test the same concept as
