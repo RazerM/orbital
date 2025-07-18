@@ -147,7 +147,7 @@ def elements_for_apsides(apocenter_radius, pericenter_radius):
 
 
 def uvw_from_elements(i, raan, arg_pe, f):
-    """Return U, V, W unit vectors.
+    r"""Return U, V, W unit vectors.
 
     :param float i: Inclination (:math:`i`) [rad]
     :param float raan:  Right ascension of ascending node (:math:`\Omega`) [rad]
@@ -213,7 +213,7 @@ def node_vector(angular_momentum):
 
 
 def eccentricity_vector(position, velocity, mu):
-    """Return eccentricity vector.
+    r"""Return eccentricity vector.
 
     :param position: Position (r) [m]
     :type position: :py:class:`~orbital.utilities.Position`
@@ -233,7 +233,7 @@ def eccentricity_vector(position, velocity, mu):
 
 
 def specific_orbital_energy(position, velocity, mu):
-    """Return specific orbital energy.
+    r"""Return specific orbital energy.
 
     :param position: Position (r) [m]
     :type position: :py:class:`~orbital.utilities.Position`

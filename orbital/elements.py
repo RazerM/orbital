@@ -27,7 +27,7 @@ __all__ = [
 @autorepr
 class KeplerianElements(object):
 
-    """Defines an orbit using keplerian elements.
+    r"""Defines an orbit using keplerian elements.
 
     :param a: Semimajor axis [m]
     :param e: Eccentricity [-]
