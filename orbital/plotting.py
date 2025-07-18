@@ -108,8 +108,8 @@ class Plotter2D():
 
         def animate(i):
             orbit.t = times[i - 1]
-            pos = fpos(orbit.f)
-            self.pos_dot.set_data(pos[0], pos[1])
+            x, y, _ = fpos(orbit.f)
+            self.pos_dot.set_data([x], [y])
 
             return self.pos_dot
 
