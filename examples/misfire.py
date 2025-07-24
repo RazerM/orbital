@@ -1,26 +1,11 @@
-##############################################
-# Allow this code to be run from the examples
-# directory without orbital installed.
-from pathlib import Path
-import sys
-
-examples_dir = Path(__file__).parent.resolve()
-orbital_dir = examples_dir.parent
-sys.path.append(str(orbital_dir))
-##############################################
 from copy import copy
 
 from numpy import cos, degrees, radians, sin, sqrt
-from orbital import earth, KeplerianElements
 from scipy.constants import kilo
-import orbital.utilities as util
+from tabulate import tabulate
 
-try:
-    from tabulate import tabulate
-except ImportError:
-    print("This example requires the 'tabulate' package, please run:\n"
-          '$ pip install tabulate')
-    exit()
+import orbital.utilities as util
+from orbital import KeplerianElements, earth
 
 """
 A 800 kg spacecraft is orbiting the Earth on an elliptical orbit with a
@@ -41,17 +26,14 @@ difference in orbital parameters.
 """
 
 orbit = KeplerianElements(
-    a=46000 * kilo,
-    e=0.65,
-    i=radians(35),
-    raan=radians(80),
-    body=earth)
+    a=46000 * kilo, e=0.65, i=radians(35), raan=radians(80), body=earth
+)
 
 orbit.t += 11 * 60 * 60
-print('After 11 h,')
+print("After 11 h,")
 print(orbit)
-print('\nOrbital state vector:')
-print(orbit.r, orbit.v, '', sep='\n')
+print("\nOrbital state vector:")
+print(orbit.r, orbit.v, "", sep="\n")
 
 thrust_total = 300  # N
 mass = 800  # kg
@@ -60,7 +42,7 @@ mass = 800  # kg
 thrust_W = 0.3 * thrust_total
 
 # remaining thrust is directed against the velocity
-thrust_in_plane = -sqrt(thrust_total ** 2 - thrust_W ** 2)
+thrust_in_plane = -sqrt(thrust_total**2 - thrust_W**2)
 
 # Get in-plane components using flight path angle
 thrust_U = thrust_in_plane * sin(orbit.fpa)
@@ -82,21 +64,24 @@ orbit2.v += v_U + v_V + v_W
 orbit.t += 4 * 60 * 60
 orbit2.t += 4 * 60 * 60
 
-print('After 4 more hours:')
-print(tabulate(
-    [
-        ['a', 'km', orbit.a / kilo, orbit2.a / kilo],
-        ['e', '-', orbit.e, orbit2.e],
-        ['i', 'deg', degrees(orbit.i), degrees(orbit2.i)],
-        ['raan', 'deg', degrees(orbit.raan), degrees(orbit2.raan)],
-        ['arg_pe', 'deg', degrees(orbit.arg_pe), degrees(orbit2.arg_pe)],
-        ['f', 'deg', degrees(orbit.f), degrees(orbit2.f)]
-    ],
-    headers=['', 'Unit', 'Nominal', 'Actual'],
-    floatfmt='.1f'))
+print("After 4 more hours:")
+print(
+    tabulate(
+        [
+            ["a", "km", orbit.a / kilo, orbit2.a / kilo],
+            ["e", "-", orbit.e, orbit2.e],
+            ["i", "deg", degrees(orbit.i), degrees(orbit2.i)],
+            ["raan", "deg", degrees(orbit.raan), degrees(orbit2.raan)],
+            ["arg_pe", "deg", degrees(orbit.arg_pe), degrees(orbit2.arg_pe)],
+            ["f", "deg", degrees(orbit.f), degrees(orbit2.f)],
+        ],
+        headers=["", "Unit", "Nominal", "Actual"],
+        floatfmt=".1f",
+    )
+)
 
-print('\nNominal state vector:')
-print(orbit.r, orbit.v, sep='\n')
+print("\nNominal state vector:")
+print(orbit.r, orbit.v, sep="\n")
 
-print('\nActual state vector:')
-print(orbit2.r, orbit2.v, sep='\n')
+print("\nActual state vector:")
+print(orbit2.r, orbit2.v, sep="\n")

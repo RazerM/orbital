@@ -1,21 +1,19 @@
-## Orbital
-[![Build Status][bsi]][bsl] [![PyPI Version][ppi]][ppl] [![Python Version][pvi]][pvl] [![MIT License][mli]][mll]
+# Orbital
 
-  [bsi]: http://img.shields.io/travis/RazerM/orbital.svg?style=flat-square
-  [bsl]: https://travis-ci.org/RazerM/orbital
-  [ppi]: http://img.shields.io/pypi/v/orbitalpy.svg?style=flat-square
-  [ppl]: https://pypi.python.org/pypi/orbitalpy/
-  [pvi]: https://img.shields.io/badge/python-2.7%2C%203-brightgreen.svg?style=flat-square
-  [pvl]: https://www.python.org/downloads/
-  [mli]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
-  [mll]: https://raw.githubusercontent.com/RazerM/orbital/master/LICENSE
+<p>
+  <a href="https://pypi.org/project/orbitalpy/"><img src="https://img.shields.io/pypi/v/orbitalpy.svg" alt="PyPI" /></a>
+  <a href="https://raw.githubusercontent.com/RazerM/orbital/master/LICENSE"><img src="https://img.shields.io/pypi/l/orbitalpy.svg" alt="MIT License" /></a>
+  <a href="https://raw.githubusercontent.com/RazerM/orbital/master/LICENSE"><img src="https://img.shields.io/pypi/pyversions/orbitalpy.svg" alt="Python Versions" /></a>
+  <a href="https://github.com/RazerM/orbital/actions"><img src="https://github.com/RazerM/orbital/actions/workflows/ci.yml/badge.svg" alt="GitHub Actions Status" /></a>
+  <a href="http://orbitalpy.readthedocs.org/en/latest/"><img src="https://img.shields.io/badge/docs-latest-brightgreen.svg" alt="Documentation" /></a>
+</p>
 
 Orbital is a high level orbital mechanics package for Python.
 
 ### Installation
 
 ```bash
-$ pip install orbitalpy
+pip install orbitalpy
 ```
 
 ### Example
@@ -38,4 +36,4 @@ plt.show()
 
 For more information, view the [documentation online][doc].
 
-  [doc]: http://pythonhosted.org/OrbitalPy/
+[doc]: http://orbitalpy.readthedocs.org/en/latest/
