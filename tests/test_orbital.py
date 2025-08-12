@@ -890,6 +890,8 @@ class TestOrbitalElements(unittest.TestCase):
         numpy.testing.assert_almost_equal(orbit.r, R)
         numpy.testing.assert_almost_equal(orbit.v, V)
 
+        # Regression test for https://github.com/RazerM/orbital/issues/43.
+
         # NOTE: These expected values have just been set to match the output
         # from this function. Note that the e, i, raan, arg_pe and M0 are
         # given directly in the TLE data, and a can be computed from the mean
@@ -898,21 +900,21 @@ class TestOrbitalElements(unittest.TestCase):
         # EXPECTED_N = EXPECTED_N_REV_PER_DAY * tau / 86400  # [rad/s]
         # EXPECTED_A = (earth.mu / EXPECTED_N ** 2) ** (1 / 3)
         #
-        # Yet the output values do not match. This is likely due to rounding
-        # errors converting to state vectors and back. The largest discrepancy
-        # is a, which is off by 5 km. See the note about arg_pe and M0.
+        # Yet the output values do not match. This is due to rounding errors
+        # converting to state vectors and back. The largest discrepancy is a,
+        # which is off by 5 km. See the note about arg_pe and M0.
         #
         # The comment after each line gives the actual expected value based on
         # the TLE data.
-        self.assertAlmostEqual(orbit.a, 6725547.816501163)  # 6730960.68??
-        self.assertAlmostEqual(orbit.e, 0.0008330)  # 0.0006703??
-        self.assertAlmostEqual(orbit.i, radians(51.621653))  # 51.6416??
-        self.assertAlmostEqual(orbit.raan, radians(247.45773))  # 247.4627??
+        self.assertAlmostEqual(orbit.a, 6725547.816501163)  # 6730960.68
+        self.assertAlmostEqual(orbit.e, 0.0008330)  # 0.0006703
+        self.assertAlmostEqual(orbit.i, radians(51.621653))  # 51.6416
+        self.assertAlmostEqual(orbit.raan, radians(247.45773))  # 247.4627
         # Note: The following two values are off by a huge amount (about 18°)
         # but the errors cancel out. Given the eccentricity is so low, the sum
         # of these two angles is all that really matters.
-        self.assertAlmostEqual(orbit.arg_pe, radians(112.50348))  # 130.5360??
-        self.assertAlmostEqual(orbit.M0, radians(343.056983))  # 325.0288??
+        self.assertAlmostEqual(orbit.arg_pe, radians(112.50348))  # 130.5360
+        self.assertAlmostEqual(orbit.M0, radians(343.056983))  # 325.0288
 
     def test_set_epoch(self):
         RADIUS = 10000000.0
