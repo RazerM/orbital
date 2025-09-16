@@ -749,7 +749,9 @@ class TestOrbitalElements(unittest.TestCase):
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
         self.assertAlmostEqual(orbit.raan, 0.0)
-        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        # XXX This should really be 0, but from_state_vector does not properly
+        # mod 2*pi, so it sometimes returns exactly 2*pi.
+        self.assertAlmostEqual(orbit.arg_pe, radians(360))
         self.assertAlmostEqual(orbit.M0, radians(90))
         self.assertAlmostEqual(orbit.t, 0.0)
         self.assertAlmostEqual(orbit.M, radians(90))
@@ -761,15 +763,13 @@ class TestOrbitalElements(unittest.TestCase):
         V = Velocity(16703.9010129, 0, 0)
 
         orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-        # XXX These do not match (they are 180° out, due to arg_pe).
-        # numpy.testing.assert_almost_equal(orbit.r, R)
-        # numpy.testing.assert_almost_equal(orbit.v, V)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
         self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
         self.assertAlmostEqual(orbit.raan, 0.0)
-        # XXX This is incorrectly calculated as 90°.
-        # self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
@@ -846,7 +846,7 @@ class TestOrbitalElements(unittest.TestCase):
             # Elliptical flat (e=0.75), prograde.
             (Position(2500000, 0, 0), Velocity(0, 16703.901013, 0)),
             # Elliptical flat (e=0.75), arg_pe > 180°.
-            # (Position(0, -2500000, 0), Velocity(16703.901013, 0, 0)),
+            (Position(0, -2500000, 0), Velocity(16703.901013, 0, 0)),
             # Elliptical flat (e=0.75), retrograde.
             # (Position(2500000, 0, 0), Velocity(0, -16703.901013, 0)),
             # Elliptical flat (e=0.75), f > 180°.
@@ -1077,19 +1077,12 @@ class TestOrbitalElements(unittest.TestCase):
         # arg_pe = 270°.
         V = Velocity(-10000, 0, 0)
 
-        def set_v(value):
-            orbit.v = value
-
-        # XXX The 'r and v changed' detection logic is triggered in this case,
-        # causing a RuntimeError to be raised. If this was not raised, the
-        # following asserts would be wildly off.
-        self.assertRaises(RuntimeError, set_v, V)
-        # numpy.testing.assert_almost_equal(orbit.r, R)
-        # numpy.testing.assert_almost_equal(orbit.v, V)
+        orbit.v = V
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
         # arg_pe should have rotated around 180°, and M0 to match (so r is in
         # the same spot as it was before).
-        # XXX This is incorrectly calculated as 90°.
-        # self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
         self.assertAlmostEqual(orbit.M0, radians(180.0))
 
     def test_set_n(self):

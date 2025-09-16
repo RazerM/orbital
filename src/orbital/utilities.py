@@ -284,6 +284,8 @@ def elements_from_state_vector(r, v, mu):
             # Argument of periapsis is the angle between
             # eccentricity vector and its x component.
             arg_pe = acos(ev.x / norm(ev))
+            if ev.y < 0:
+                arg_pe = 2 * pi - arg_pe
     else:
         # Right ascension of ascending node is the angle
         # between the node vector and its x component.
