@@ -672,26 +672,19 @@ class TestOrbitalElements(unittest.TestCase):
         R = Position(RADIUS, 0, 0)
         V = Velocity(0, -sqrt(earth.mu / RADIUS), 0)
 
-        # XXX This erroneously generates warnings and raises an assertion, due
-        # to internal values being NaN.
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            self.assertRaises(
-                AssertionError, KeplerianElements.from_state_vector, R, V, body=earth
-            )
-        # The expected values, after this bug is fixed:
-        # numpy.testing.assert_almost_equal(orbit.r, R)
-        # numpy.testing.assert_almost_equal(orbit.v, V)
-        # self.assertAlmostEqual(orbit.a, RADIUS)
-        # self.assertAlmostEqual(orbit.e, 0.0)
-        # self.assertAlmostEqual(orbit.i, radians(180))
-        # self.assertAlmostEqual(orbit.raan, 0.0)
-        # self.assertAlmostEqual(orbit.arg_pe, 0.0)
-        # self.assertAlmostEqual(orbit.M0, 0.0)
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+        self.assertAlmostEqual(orbit.a, RADIUS)
+        self.assertAlmostEqual(orbit.e, 0.0)
+        self.assertAlmostEqual(orbit.i, radians(180))
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.M0, 0.0)
 
-        # self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        # self.assertEqual(orbit.body, earth)
-        # self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_inclined(self):
         # Inclined circular orbit, 1/4 of the way around.
@@ -700,20 +693,14 @@ class TestOrbitalElements(unittest.TestCase):
         R = Position(-RADIUS * 0.5 * sqrt(2), 0, RADIUS * 0.5 * sqrt(2))
         V = Velocity(0, -sqrt(earth.mu / RADIUS), 0)
 
-        with warnings.catch_warnings():
-            # XXX This has a warning for dividing by zero.
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-        # XXX: r, v and arg_pe are nan due to a bug in from_state_vector.
-        # This happens for a perfect circle, but doesn't happen in
-        # test_from_state_vector_circular for some reason.
-        # numpy.testing.assert_almost_equal(orbit.r, R)
-        # numpy.testing.assert_almost_equal(orbit.v, V)
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
         self.assertAlmostEqual(orbit.a, RADIUS)
         self.assertAlmostEqual(orbit.e, 0.0)
         self.assertAlmostEqual(orbit.i, radians(45))
         self.assertAlmostEqual(orbit.raan, radians(90))
-        # self.assertAlmostEqual(orbit.arg_pe, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, 0.0)
         self.assertAlmostEqual(orbit.M0, radians(90))
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
@@ -761,19 +748,41 @@ class TestOrbitalElements(unittest.TestCase):
         V = Velocity(16703.9010129, 0, 0)
 
         orbit = KeplerianElements.from_state_vector(R, V, body=earth)
-        # XXX These do not match (they are 180° out, due to arg_pe).
-        # numpy.testing.assert_almost_equal(orbit.r, R)
-        # numpy.testing.assert_almost_equal(orbit.v, V)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
         self.assertAlmostEqual(orbit.a, 10000000.0, places=3)
         self.assertAlmostEqual(orbit.e, 0.75)
         self.assertAlmostEqual(orbit.i, 0.0)
         self.assertAlmostEqual(orbit.raan, 0.0)
-        # XXX This is incorrectly calculated as 90°.
-        # self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
         self.assertAlmostEqual(orbit.M0, 0.0)
 
         self.assertAlmostEqual(orbit.ref_epoch, J2000)
         self.assertEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
+
+    def test_from_state_vector_elliptical_almost_flat(self):
+        # Elliptical orbit, at periapsis, arg_pe = 90°.
+        # Almost zero inclination, but Z is very slightly negative.
+        # Regression test for https://github.com/RazerM/orbital/issues/44
+        # The issue is that the inclination is so small, it is considered to be
+        # a non-inclined case, but the eccentricity vector's Z coordinate is
+        # very slightly negative, which would flip arg_pe erroneously.
+        R = Position(0, 2500000, -0.01)
+        V = Velocity(-16703.901013, 0, 0)
+
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R, decimal=2)
+        numpy.testing.assert_almost_equal(orbit.v, V, decimal=2)
+        self.assertAlmostEqual(orbit.a, 10000000.0, places=2)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, 0.0)
+        # The absolute value of raan and arg_pe doesn't matter, because i is
+        # small. All that matters is that they are 90° apart.
+        # The current implementation always sets raan = 0 when i is small.
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, radians(90.0))
+        self.assertAlmostEqual(orbit.M0, 0.0)
         self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_f_at_periapsis(self):
@@ -784,24 +793,19 @@ class TestOrbitalElements(unittest.TestCase):
         R = Position(0, -1767766.952966369, -1767766.952966369)
         V = Velocity(16703.901013, 0, 0)
 
-        # XXX Currently crashes due to the above bug.
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            self.assertRaises(
-                AssertionError, KeplerianElements.from_state_vector, R, V, body=earth
-            )
-        # numpy.testing.assert_almost_equal(orbit.r, R)
-        # numpy.testing.assert_almost_equal(orbit.v, V)
-        # self.assertAlmostEqual(orbit.a, 10000000.0, places=2)
-        # self.assertAlmostEqual(orbit.e, 0.75)
-        # self.assertAlmostEqual(orbit.i, radians(45))
-        # self.assertAlmostEqual(orbit.raan, 0.0)
-        # self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
-        # self.assertAlmostEqual(orbit.M0, 0.0)
+        orbit = KeplerianElements.from_state_vector(R, V, body=earth)
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
+        self.assertAlmostEqual(orbit.a, 10000000.0, places=2)
+        self.assertAlmostEqual(orbit.e, 0.75)
+        self.assertAlmostEqual(orbit.i, radians(45))
+        self.assertAlmostEqual(orbit.raan, 0.0)
+        self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        self.assertAlmostEqual(orbit.M0, 0.0)
 
-        # self.assertAlmostEqual(orbit.ref_epoch, J2000)
-        # self.assertEqual(orbit.body, earth)
-        # self.assertAlmostEqual(orbit.t, 0.0)
+        self.assertAlmostEqual(orbit.ref_epoch, J2000)
+        self.assertEqual(orbit.body, earth)
+        self.assertAlmostEqual(orbit.t, 0.0)
 
     def test_from_state_vector_iss(self):
         # ISS (Zarya) from 2008-09-20 12:25:40
@@ -832,23 +836,45 @@ class TestOrbitalElements(unittest.TestCase):
             # Circular flat, f > 180°.
             (Position(0, -10000000, 0), Velocity(6313.4811435530555, 0, 0)),
             # Circular flat, retrograde.
-            # (Position(10000000, 0, 0), Velocity(0, -6313.4811435530555, 0)),
+            (Position(10000000, 0, 0), Velocity(0, -6313.4811435530555, 0)),
             # Circular inclined, prograde.
-            # (Position(10000000, 0, 0), Velocity(0, 4464.305329499764, 4464.305329499764)),
+            (
+                Position(10000000, 0, 0),
+                Velocity(0, 4464.305329499764, 4464.305329499764),
+            ),
             # Circular inclined, prograde (raan 90°, M0 90°).
-            # (Position(-7071067.811865476, 0, 7071067.811865476), Velocity(0, -6313.4811435530555, 0)),
+            (
+                Position(-7071067.811865476, 0, 7071067.811865476),
+                Velocity(0, -6313.4811435530555, 0),
+            ),
             # Circular inclined, raan > 180°.
-            # (Position(0, -10000000, 0), Velocity(4464.305329499764, 0, 4464.305329499764)),
+            (
+                Position(0, -10000000, 0),
+                Velocity(4464.305329499764, 0, 4464.305329499764),
+            ),
             # Circular inclined, f > 180°.
-            # (Position(0, -7071067.811865476, -7071067.811865476), Velocity(6313.4811435530555, 0, 0)),
+            (
+                Position(0, -7071067.811865476, -7071067.811865476),
+                Velocity(6313.4811435530555, 0, 0),
+            ),
             # Circular polar.
-            # (Position(10000000, 0, 0), Velocity(0, 0, 6313.4811435530555)),
+            (Position(10000000, 0, 0), Velocity(0, 0, 6313.4811435530555)),
             # Elliptical flat (e=0.75), prograde.
             (Position(2500000, 0, 0), Velocity(0, 16703.901013, 0)),
+            # Elliptical flat (e=0.75), prograde, arg_pe = 90°, at periapsis.
+            (Position(0, 2500000, 0), Velocity(-16703.901013, 0, 0)),
+            # Elliptical almost-flat (e=0.75, i ~= 0 but Z slightly positive).
+            (Position(0, 2500000, 0.000000001), Velocity(-16703.901013, 0, 0)),
+            # Elliptical almost-flat (e=0.75, i ~= 0 but Z slightly negative).
+            (Position(0, 2500000, -0.000000001), Velocity(-16703.901013, 0, 0)),
             # Elliptical flat (e=0.75), arg_pe > 180°.
-            # (Position(0, -2500000, 0), Velocity(16703.901013, 0, 0)),
+            (Position(0, -2500000, 0), Velocity(16703.901013, 0, 0)),
             # Elliptical flat (e=0.75), retrograde.
-            # (Position(2500000, 0, 0), Velocity(0, -16703.901013, 0)),
+            (Position(2500000, 0, 0), Velocity(0, -16703.901013, 0)),
+            # Elliptical flat (e=0.75), retrograde, arg_pe = 90°, at periapsis.
+            (Position(0, -2500000, 0), Velocity(-16703.901013, 0, 0)),
+            # Elliptical flat, retrograde, arg_pe = 90°, at apoapsis.
+            (Position(0, -2500000, 0), Velocity(-10000.0, 0, 0)),
             # Elliptical flat (e=0.75), f > 180°.
             (
                 Position(-13255776.4031414, -5408888.899183, 0),
@@ -860,7 +886,10 @@ class TestOrbitalElements(unittest.TestCase):
                 Velocity(0, 11811.441678561141, 11811.441678561141),
             ),
             # Elliptical inclined, arg_pe > 180°.
-            # (Position(0, -1767766.952966369, -1767766.952966369), Velocity(16703.901013, 0, 0)),
+            (
+                Position(0, -1767766.952966369, -1767766.952966369),
+                Velocity(16703.901013, 0, 0),
+            ),
         ]
 
         for i, (r, v) in enumerate(CASES):
@@ -1077,19 +1106,12 @@ class TestOrbitalElements(unittest.TestCase):
         # arg_pe = 270°.
         V = Velocity(-10000, 0, 0)
 
-        def set_v(value):
-            orbit.v = value
-
-        # XXX The 'r and v changed' detection logic is triggered in this case,
-        # causing a RuntimeError to be raised. If this was not raised, the
-        # following asserts would be wildly off.
-        self.assertRaises(RuntimeError, set_v, V)
-        # numpy.testing.assert_almost_equal(orbit.r, R)
-        # numpy.testing.assert_almost_equal(orbit.v, V)
+        orbit.v = V
+        numpy.testing.assert_almost_equal(orbit.r, R)
+        numpy.testing.assert_almost_equal(orbit.v, V)
         # arg_pe should have rotated around 180°, and M0 to match (so r is in
         # the same spot as it was before).
-        # XXX This is incorrectly calculated as 90°.
-        # self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
+        self.assertAlmostEqual(orbit.arg_pe, radians(270.0))
         self.assertAlmostEqual(orbit.M0, radians(180.0))
 
     def test_set_n(self):
