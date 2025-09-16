@@ -271,8 +271,9 @@ def elements_from_state_vector(r, v, mu):
     # Inclination is the angle between the angular
     # momentum vector and its z component.
     i = acos(h.z / norm(h))
+    i_small = abs(i) < SMALL_NUMBER or abs(i - pi) < SMALL_NUMBER
 
-    if abs(i) < SMALL_NUMBER:
+    if i_small:
         # For non-inclined orbits, raan is undefined;
         # set to zero by convention
         raan = 0
@@ -284,40 +285,51 @@ def elements_from_state_vector(r, v, mu):
             # Argument of periapsis is the angle between
             # eccentricity vector and its x component.
             arg_pe = acos(ev.x / norm(ev))
+            if ev.y < 0:
+                arg_pe = -arg_pe
+            # If plane is upside down, arg_pe needs to be inverted.
+            if abs(i) > pi * 0.5:
+                arg_pe = -arg_pe
+            arg_pe = mod(arg_pe, 2 * pi)
     else:
         # Right ascension of ascending node is the angle
         # between the node vector and its x component.
         raan = acos(n.x / norm(n))
         if n.y < 0:
-            raan = 2 * pi - raan
+            raan = mod(-raan, 2 * pi)
 
-        # Argument of periapsis is angle between
-        # node and eccentricity vectors.
-        arg_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
+        if abs(e) < SMALL_NUMBER:
+            # For circular orbits, place periapsis
+            # at ascending node by convention
+            arg_pe = 0
+        else:
+            # Argument of periapsis is angle between
+            # node and eccentricity vectors.
+            arg_pe = acos(dot(n, ev) / (norm(n) * norm(ev)))
 
     if abs(e) < SMALL_NUMBER:
-        if abs(i) < SMALL_NUMBER:
+        if i_small:
             # True anomaly is angle between position
             # vector and its x component.
             f = acos(r.x / norm(r))
             if v.x > 0:
-                f = 2 * pi - f
+                f = mod(-f, 2 * pi)
         else:
             # True anomaly is angle between node
             # vector and position vector.
             f = acos(dot(n, r) / (norm(n) * norm(r)))
             if dot(n, v) > 0:
-                f = 2 * pi - f
+                f = mod(-f, 2 * pi)
     else:
         if ev.z < 0:
-            arg_pe = 2 * pi - arg_pe
+            arg_pe = mod(-arg_pe, 2 * pi)
 
         # True anomaly is angle between eccentricity
         # vector and position vector.
         f = acos(dot(ev, r) / (norm(ev) * norm(r)))
 
         if dot(r, v) < 0:
-            f = 2 * pi - f
+            f = mod(-f, 2 * pi)
 
     return OrbitalElements(a=a, e=e, i=i, raan=raan, arg_pe=arg_pe, f=f)
 
